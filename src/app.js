@@ -1,3 +1,5 @@
+'use strict';
+
 require('dotenv').config();
 
 const express = require('express');
@@ -21,5 +23,21 @@ require('./configs/init.mongodb');
 app.use('/', require('./routers/index'));
 
 // handle errors
+app.use((req, res, next) => {
+  const error = new Error('Not Found');
+  error.status = 404;
+  next(error);
+});
+
+app.use((err, req, res, next) => {
+  const statusCode = err.status || 500;
+  const message = err.message || 'Internal Server Error';
+  return res.status(statusCode).json({
+    status: 'error',
+    code: statusCode,
+    message: message,
+    // stack: err.stack
+  });
+});
 
 module.exports = app;

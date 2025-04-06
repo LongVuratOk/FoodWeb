@@ -1,5 +1,7 @@
+'use strict';
+
 const express = require('express');
-const AccessController = require('../../controllers/access.controller');
+const AccessController = require('../../controllers/admin/access.controller');
 const router = express.Router();
 
 router.post('/shop/signup', AccessController.signUp);

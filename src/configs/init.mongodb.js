@@ -1,3 +1,5 @@
+'use strict';
+
 const { default: mongoose } = require('mongoose');
 
 const connectString = process.env.MONGO_URI;

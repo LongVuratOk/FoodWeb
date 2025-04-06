@@ -1,4 +1,6 @@
-const AccessService = require('../services/access.service');
+'use strict';
+
+const AccessService = require('../../services/access.service');
 
 class AccessController {
   signUp = async (req, res, next) => {
