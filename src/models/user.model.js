@@ -1,5 +1,7 @@
 'use strict';
 
+const bcrypt = require('bcrypt');
+
 const { model, Schema } = require('mongoose');
 
 const DOCUMENT_NAME = 'User';
@@ -41,5 +43,37 @@ const userSchema = new Schema(
     collection: COLLECTION_NAME,
   },
 );
+
+userSchema.set('toJSON', {
+  transform: function (doc, ret, options) {
+    delete ret.password;
+  },
+});
+
+userSchema.pre('save', async function (next) {
+  const user = this;
+  if (user.isModified('password')) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+  next();
+});
+
+userSchema.pre('findOneAndUpdate', async function (next) {
+  const user = { ...this.getUpdate() };
+  if (user.password) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+  this.setUpdate(user);
+  next();
+});
+
+userSchema.pre('findByIdAndUpdate', async function (next) {
+  const user = { ...this.getUpdate() };
+  if (user.password) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+  this.setUpdate(user);
+  next();
+});
 
 module.exports = model(DOCUMENT_NAME, userSchema);
