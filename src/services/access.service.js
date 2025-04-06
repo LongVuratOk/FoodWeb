@@ -12,7 +12,15 @@ const { createTokenPair } = require('../auth/generateToken');
 const { findByEmail } = require('../models/repositories/user.repo');
 
 class AccessService {
-  static logout = async () => {};
+  static logout = async (keyStore) => {
+    const delKey = await KeyTokenService.removeKeyById(keyStore._id);
+    return {
+      delKey: getInfoData({
+        fields: ['_id', 'user', 'publicKey', 'privateKey', 'refreshToken'],
+        object: delKey,
+      }),
+    };
+  };
 
   static login = async ({ email, password, refreshToken = null }) => {
     // check email
@@ -33,11 +41,10 @@ class AccessService {
 
     const payload = {
       userId: foundUser._id,
-      email,
     };
 
     // create access, refresh token
-    const tokens = await createTokenPair(payload, privateKey);
+    const tokens = await createTokenPair(payload, publicKey, privateKey);
 
     // save key pair
     await KeyTokenService.createKeyToken({
@@ -85,6 +92,7 @@ class AccessService {
       // create access, refresh token
       const tokens = await createTokenPair(
         { userId: newUser._id, email },
+        publicKey,
         privateKey,
       );
 
