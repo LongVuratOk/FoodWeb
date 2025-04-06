@@ -1,16 +1,61 @@
 'use strict';
 
 const crypt = require('crypto');
-const { BadRequestError } = require('../core/error.response');
+const bcrypt = require('bcrypt');
+const { BadRequestError, NotFoundError } = require('../core/error.response');
 const UserModel = require('../models/user.model');
 const ROLES = require('../constants/type.roles');
 const { validateCreateUser } = require('../validations/user.valid');
 const { getInfoData } = require('../utils');
-const KeyModel = require('../models/keytoken.model');
 const KeyTokenService = require('./keyToken.service');
 const { createTokenPair } = require('../auth/generateToken');
+const { findByEmail } = require('../models/repositories/user.repo');
 
 class AccessService {
+  static logout = async () => {};
+
+  static login = async ({ email, password, refreshToken = null }) => {
+    // check email
+    const foundUser = await findByEmail({ email });
+    if (!foundUser) {
+      throw new BadRequestError('Email/password wrong');
+    }
+
+    // compare pass
+    const match = await bcrypt.compare(password, foundUser.password);
+    if (!match) {
+      throw new BadRequestError('Email/password wrong');
+    }
+
+    // crreate key
+    const privateKey = await crypt.randomBytes(64).toString('hex');
+    const publicKey = await crypt.randomBytes(64).toString('hex');
+
+    const payload = {
+      userId: foundUser._id,
+      email,
+    };
+
+    // create access, refresh token
+    const tokens = await createTokenPair(payload, privateKey);
+
+    // save key pair
+    await KeyTokenService.createKeyToken({
+      userId: foundUser._id,
+      publicKey,
+      privateKey,
+      refreshToken: tokens.refreshToken,
+    });
+
+    return {
+      user: getInfoData({
+        fields: ['_id', 'name', 'email'],
+        object: foundUser,
+      }),
+      tokens,
+    };
+  };
+
   static signUp = async ({ name, email, password }) => {
     // validate data
     const { error } = validateCreateUser({ name, email, password });
@@ -19,7 +64,7 @@ class AccessService {
     }
 
     // check user is exists
-    const foundUser = await UserModel.findOne({ email });
+    const foundUser = await findByEmail({ email });
     if (foundUser) {
       throw new BadRequestError('Email already exists');
     }
