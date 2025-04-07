@@ -6,7 +6,6 @@ const HEADER = require('../constants/type.headers');
 const { UnauthorizedError, NotFoundError } = require('../core/error.response');
 const { asyncHandle } = require('../middlewares/asyncHandle.middleware');
 const KeyTokenService = require('../services/keyToken.service');
-const { token } = require('morgan');
 
 const authentication = asyncHandle(async (req, res, next) => {
   const userId = req.headers[HEADER.CLIENT_ID];
@@ -27,7 +26,7 @@ const authentication = asyncHandle(async (req, res, next) => {
         throw new UnauthorizedError('Invalid userId');
       }
       req.keyStore = keyStore;
-      req.userId = userId;
+      req.user = decode;
       req.refreshToken = refreshToken;
       return next();
     } catch (error) {
@@ -43,8 +42,9 @@ const authentication = asyncHandle(async (req, res, next) => {
     if (userId !== decode.userId) {
       throw new UnauthorizedError('Invalid userId');
     }
+
     req.keyStore = keyStore;
-    req.userId = userId;
+    req.user = decode;
     req.accessToken = accessToken;
     return next();
   } catch (error) {

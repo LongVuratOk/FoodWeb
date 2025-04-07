@@ -2,7 +2,11 @@
 
 const crypt = require('crypto');
 const bcrypt = require('bcrypt');
-const { BadRequestError, NotFoundError } = require('../core/error.response');
+const {
+  BadRequestError,
+  ForbiddenError,
+  UnauthorizedError,
+} = require('../core/error.response');
 const UserModel = require('../models/user.model');
 const ROLES = require('../constants/type.roles');
 const { validateCreateUser } = require('../validations/user.valid');
@@ -12,6 +16,47 @@ const { createTokenPair } = require('../auth/generateToken');
 const { findByEmail } = require('../models/repositories/user.repo');
 
 class AccessService {
+  static handleRefreshToken = async ({ refreshToken, user, keyStore }) => {
+    const { userId, email } = user;
+
+    // check refreshToken is used
+    if (keyStore.refreshTokenUsed.includes(refreshToken)) {
+      await KeyTokenService.deleteKeyByUserId(userId);
+      throw new ForbiddenError('Somthing wrong happen! Relogin');
+    }
+
+    // check refresh token is exists
+    if (keyStore.refreshToken !== refreshToken) {
+      throw new UnauthorizedError('Not registered');
+    }
+
+    // check email
+    const foundUer = await findByEmail({ email });
+    if (!foundUer) {
+      throw new UnauthorizedError('Not registered');
+    }
+
+    // create token pair
+    const tokens = await createTokenPair(
+      { userId, email },
+      keyStore.publicKey,
+      keyStore.privateKey,
+    );
+
+    await keyStore.updateOne({
+      $set: {
+        refreshToken: tokens.refreshToken,
+      },
+      $addToSet: {
+        refreshTokenUsed: refreshToken,
+      },
+    });
+    return {
+      user,
+      tokens,
+    };
+  };
+
   static logout = async (keyStore) => {
     const delKey = await KeyTokenService.removeKeyById(keyStore._id);
     return {
@@ -41,6 +86,7 @@ class AccessService {
 
     const payload = {
       userId: foundUser._id,
+      email,
     };
 
     // create access, refresh token

@@ -9,7 +9,17 @@ const getInfoData = ({ fields = [], object = {} }) => {
   return _.pick(object, fields);
 };
 
+const getSelectData = (select = []) => {
+  return Object.fromEntries(select.map((e1) => [e1, 0]));
+};
+
+const getUnSelectData = (select = []) => {
+  return Object.fromEntries(select.map((e1) => [e1, 0]));
+};
+
 module.exports = {
   getInfoData,
   convertToObjectIdMongodb,
+  getSelectData,
+  getUnSelectData,
 };

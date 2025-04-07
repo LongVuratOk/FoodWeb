@@ -30,6 +30,10 @@ class KeyTokenService {
   static removeKeyById = async (id) => {
     return await KeyModel.findByIdAndDelete(id);
   };
+
+  static deleteKeyByUserId = async (userId) => {
+    return await KeyModel.findOneAndDelete({ user: userId });
+  };
 }
 
 module.exports = KeyTokenService;
