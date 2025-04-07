@@ -31,7 +31,11 @@ const productSchema = new Schema(
       ref: 'Category',
       required: true,
     },
-    product_shop: {
+    product_createBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    product_updateBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
