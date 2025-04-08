@@ -25,7 +25,10 @@ const deleteManyProducts = async (filter) => {
 };
 
 const findByProductId = async (id) => {
-  return await ProductModel.findById(id);
+  return await ProductModel.findById(id)
+    .populate('product_category', 'category_name -_id')
+    .populate('product_createBy', 'name -_id')
+    .lean();
 };
 
 const publishedProduct = async ({ product_id }) => {

@@ -11,6 +11,7 @@ const {
   searchProduct,
   publishedProduct,
   unPublishedProduct,
+  findByProductId,
 } = require('../models/repositories/product.repo');
 const { getInfoData } = require('../utils');
 const {
@@ -62,6 +63,15 @@ class ProductService {
     filter = { isPublished: true },
   }) => {
     return await queryProduct({ limit, sort, page, filter });
+  };
+
+  static getProduct = async ({ product_id }) => {
+    const result = await findByProductId(product_id);
+    if (!result) {
+      throw new NotFoundError('Product is not found');
+    }
+
+    return result;
   };
 
   static searchProduct = async ({ keySearch }) => {

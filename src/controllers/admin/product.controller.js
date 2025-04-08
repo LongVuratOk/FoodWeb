@@ -11,6 +11,13 @@ class ProductController {
     }).send(res);
   };
 
+  getProduct = async (req, res, next) => {
+    new OK({
+      message: 'Get detail product successfully',
+      metadata: await ProductService.getProduct({ product_id: req.params._id }),
+    }).send(res);
+  };
+
   getAllProductsDraff = async (req, res, next) => {
     new OK({
       message: 'Get all product draff successfully',
