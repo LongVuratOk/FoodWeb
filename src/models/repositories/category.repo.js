@@ -6,6 +6,7 @@ const {
   getUnSelectData,
 } = require('../../utils');
 const CategoryModel = require('../category.model');
+const { deleteManyProducts } = require('./product.repo');
 
 const publishCategory = async (id) => {
   const foundCategory = await CategoryModel.findById(
@@ -42,7 +43,11 @@ const updateCategory = async ({ id, bodyUpdate, isNew = true }) => {
 };
 
 const deleteCategory = async (id) => {
-  return await CategoryModel.findByIdAndDelete(id);
+  const deleteProducts = await deleteManyProducts({
+    product_category: convertToObjectIdMongodb(id),
+  });
+  const deleteCat = await CategoryModel.findByIdAndDelete(id);
+  return { deleteProducts, deleteCat };
 };
 
 const findByCategoryId = async (id) => {
@@ -51,6 +56,10 @@ const findByCategoryId = async (id) => {
 
 const findByCategoryName = async (name) => {
   return await CategoryModel.findOne({ category_name: name }).lean();
+};
+
+const findOneForCategory = async (filter) => {
+  return await CategoryModel.findOne(filter).lean();
 };
 
 const searchCategory = async ({ keySearch }) => {
@@ -84,6 +93,7 @@ module.exports = {
   findByCategoryName,
   createCategory,
   findByCategoryId,
+  findOneForCategory,
   publishCategory,
   unPublishCategory,
   queryCategory,

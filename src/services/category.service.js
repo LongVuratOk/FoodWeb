@@ -66,11 +66,19 @@ class CategoryService {
   };
 
   static publishCategory = async ({ category_id }) => {
-    return await publishCategory(category_id);
+    const result = await publishCategory(category_id);
+    if (!result) {
+      throw new NotFoundError('Category is not found');
+    }
+    return result;
   };
 
   static unPublishCategory = async ({ category_id }) => {
-    return await unPublishCategory(category_id);
+    const result = await unPublishCategory(category_id);
+    if (!result) {
+      throw new NotFoundError('Category is not found');
+    }
+    return result;
   };
 
   static createCategory = async (body) => {
@@ -98,10 +106,20 @@ class CategoryService {
       throw new BadRequestError(error.details[0].message);
     }
 
-    return await updateCategory({ id: category_id, bodyUpdate });
+    const updateCat = await updateCategory({ id: category_id, bodyUpdate });
+    if (!updateCat) {
+      throw new NotFoundError('Category is not found');
+    }
+
+    return updateCat;
   };
   static deleteCategory = async ({ category_id }) => {
-    return await deleteCategory(category_id);
+    const deleteCat = await deleteCategory(category_id);
+    if (!deleteCat.deleteCat) {
+      throw new NotFoundError('Category is not found');
+    }
+
+    return deleteCat;
   };
 }
 
