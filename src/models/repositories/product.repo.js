@@ -26,8 +26,8 @@ const deleteManyProducts = async (filter) => {
 
 const findByProductId = async (id) => {
   return await ProductModel.findById(id)
-    .populate('product_category', 'category_name -_id')
-    .populate('product_createBy', 'name -_id')
+    .populate('product_category', 'category_name')
+    .populate('product_createBy', 'name')
     .lean();
 };
 
@@ -91,8 +91,8 @@ const queryProduct = async ({ limit, sort, page, filter }) => {
   const skip = (page - 1) * limit;
   const sortBy = sort === 'ctime' ? { _id: -1 } : { _id: 1 };
   return await ProductModel.find(filter)
-    .populate('product_category', 'category_name -_id')
-    .populate('product_createBy', 'name -_id')
+    .populate('product_category', 'category_name')
+    .populate('product_createBy', 'name')
     .skip(skip)
     .limit(limit)
     .sort(sortBy)
