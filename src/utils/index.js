@@ -10,7 +10,7 @@ const getInfoData = ({ fields = [], object = {} }) => {
 };
 
 const getSelectData = (select = []) => {
-  return Object.fromEntries(select.map((e1) => [e1, 0]));
+  return Object.fromEntries(select.map((e1) => [e1, 1]));
 };
 
 const getUnSelectData = (select = []) => {

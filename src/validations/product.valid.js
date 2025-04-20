@@ -14,11 +14,11 @@ const createProductSchema = Joi.object({
   }),
   product_createBy: Joi.string().regex(objectIdPattern).optional().messages({
     'string.pattern.base':
-      'product_category must be a valid ObjectId (24 hex characters)',
+      'product_createBy must be a valid ObjectId (24 hex characters)',
   }),
   product_updateBy: Joi.string().regex(objectIdPattern).optional().messages({
     'string.pattern.base':
-      'product_category must be a valid ObjectId (24 hex characters)',
+      'product_updateBy must be a valid ObjectId (24 hex characters)',
   }),
 
   product_ratingsAverage: Joi.number().default(4.5).min(1).max(5),

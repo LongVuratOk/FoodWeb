@@ -10,6 +10,7 @@ const router = express.Router();
 // router.use(apiKey);
 // router.use(permission('0000'));
 
+router.use('/v1/api/discount', require('./admin/discount.router'));
 router.use('/v1/api/cart', require('./admin/cart.router'));
 router.use('/v1/api/product', require('./admin/product.router'));
 router.use('/v1/api/category', require('./admin/category.router'));

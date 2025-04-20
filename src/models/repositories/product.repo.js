@@ -1,7 +1,7 @@
 'use strict';
 
 const { BadRequestError } = require('../../core/error.response');
-const { convertToObjectIdMongodb } = require('../../utils');
+const { convertToObjectIdMongodb, getSelectData } = require('../../utils');
 const categoryModel = require('../category.model');
 const ProductModel = require('../product.model');
 
@@ -99,6 +99,23 @@ const queryProduct = async ({ limit, sort, page, filter }) => {
     .lean();
 };
 
+const findAllProductForDiscount = async ({
+  limit,
+  sort,
+  page,
+  filter,
+  select,
+}) => {
+  const skip = (page - 1) * limit;
+  const sortBy = sort === 'ctime' ? { _id: -1 } : { _id: 1 };
+  return await ProductModel.find(filter)
+    .skip(skip)
+    .limit(limit)
+    .sort(sortBy)
+    .select(getSelectData(select))
+    .lean();
+};
+
 module.exports = {
   findByProductId,
   createProduct,
@@ -109,4 +126,5 @@ module.exports = {
   searchProduct,
   publishedProduct,
   unPublishedProduct,
+  findAllProductForDiscount,
 };
