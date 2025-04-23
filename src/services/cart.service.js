@@ -57,11 +57,11 @@ class CartService {
 
     const foundProduct = await findByProductId(productId);
     if (!foundProduct) {
-      throw new NotFoundError('Product is not exists');
+      throw new NotFoundError('Sản phẩm không tồn tại');
     }
 
     if (foundProduct.product_quatity < quantity) {
-      throw new BadRequestError('Not enough stock available');
+      throw new BadRequestError('Số lượng không đủ');
     }
 
     const foundUserCart = await findByUserIdCart(userId);
@@ -74,7 +74,7 @@ class CartService {
         },
       });
     }
-    let isProductInCart = false; // Dùng let thay vì const
+    let isProductInCart = false;
     for (let index = 0; index < foundUserCart.cart_products.length; index++) {
       if (
         foundUserCart.cart_products[index].productId._id.toString() ===
@@ -84,8 +84,6 @@ class CartService {
         break;
       }
     }
-
-    console.log('first:::', isProductInCart);
 
     if (!isProductInCart) {
       return await CartService.createOrInsertProductCart({
@@ -124,7 +122,7 @@ class CartService {
       };
     const result = await deleteItemCart(query, updateSet);
     if (!result) {
-      throw new NotFoundError('Cart is not exists');
+      throw new NotFoundError('Giỏ hàng không tồn tại');
     }
     return result;
   };

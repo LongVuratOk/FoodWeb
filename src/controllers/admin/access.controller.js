@@ -6,28 +6,28 @@ const { OK, CREATED } = require('../../core/success.response');
 class AccessController {
   signUp = async (req, res, next) => {
     new CREATED({
-      message: 'Sign up successfully',
+      message: 'Tạo tài khoản thành công',
       metadata: await AccessService.signUp(req.body),
     }).send(res);
   };
 
   login = async (req, res, next) => {
     new OK({
-      message: 'Login successfully',
+      message: 'Đăng nhập thành công',
       metadata: await AccessService.login(req.body),
     }).send(res);
   };
 
   logout = async (req, res, next) => {
     new OK({
-      message: 'Logout successfully',
+      message: 'Đăng xuất thành công',
       metadata: await AccessService.logout(req.keyStore),
     }).send(res);
   };
 
   refreshToken = async (req, res, next) => {
     new OK({
-      message: 'Refresh Token successfully',
+      message: 'Khởi tạo token thành công',
       metadata: await AccessService.handleRefreshToken({
         refreshToken: req.refreshToken,
         user: req.user,

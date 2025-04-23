@@ -19,10 +19,12 @@ const {
 const { getInfoData } = require('../utils');
 
 class CategoryService {
+  // Tìm liếm danh mục theo từ khóa
   static searchCategory = async ({ keySearch }) => {
-    return searchCategory({ keySearch });
+    return await searchCategory({ keySearch });
   };
 
+  // Lấy bản nháp của danh mục
   static getAllCategoriesDraff = async ({
     limit = 50,
     sort = 'ctime',
@@ -37,6 +39,7 @@ class CategoryService {
     });
   };
 
+  // Lấy bản công khai của danh mục
   static getAllCategoriesPublish = async ({
     limit = 50,
     sort = 'ctime',
@@ -51,6 +54,7 @@ class CategoryService {
     });
   };
 
+  // Lấy tất cả danh mục
   static getAllCategories = async ({
     limit = 50,
     sort = 'ctime',
@@ -65,33 +69,39 @@ class CategoryService {
     });
   };
 
+  // Chuyển danh mục sang trạng thái công khai
   static publishCategory = async ({ category_id }) => {
     const result = await publishCategory(category_id);
     if (!result) {
-      throw new NotFoundError('Category is not found');
+      throw new NotFoundError('Danh mục không tồn tại');
     }
     return result;
   };
 
+  // Chuyển danh mục sang trạng thái nháp
   static unPublishCategory = async ({ category_id }) => {
     const result = await unPublishCategory(category_id);
     if (!result) {
-      throw new NotFoundError('Category is not found');
+      throw new NotFoundError('Danh mục không tồn tại');
     }
     return result;
   };
 
+  /**
+   * Tạo mới một danh mục:
+   * - Xác thực dữ liệu đầu vào
+   * - Kiểm tra danh mục tồn tại
+   * - Tạo danh mục mới
+   */
   static createCategory = async (body) => {
-    // valid data
     const { error } = validateCreateCategory(body);
     if (error) {
       throw new BadRequestError(error.details[0].message);
     }
 
-    // check category is exists
     const foundCategory = await findByCategoryName(body.category_name);
     if (foundCategory) {
-      throw new BadRequestError('Category is exists');
+      throw new BadRequestError('Danh mục không tồn tại');
     }
 
     const newCategory = await createCategory(body);
@@ -108,15 +118,21 @@ class CategoryService {
 
     const updateCat = await updateCategory({ id: category_id, bodyUpdate });
     if (!updateCat) {
-      throw new NotFoundError('Category is not found');
+      throw new NotFoundError('Danh mục không tồn tại');
     }
 
     return updateCat;
   };
+
+  /**
+   * Xóa danh mục
+   * - Xóa các sản phẩm liên quan đến danh mục hiện tại
+   * - Xóa danh mục
+   */
   static deleteCategory = async ({ category_id }) => {
     const deleteCat = await deleteCategory(category_id);
     if (!deleteCat.deleteCat) {
-      throw new NotFoundError('Category is not found');
+      throw new NotFoundError('Danh mục không tồn tại');
     }
 
     return deleteCat;

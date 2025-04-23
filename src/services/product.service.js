@@ -68,7 +68,7 @@ class ProductService {
   static getProduct = async ({ product_id }) => {
     const result = await findByProductId(product_id);
     if (!result) {
-      throw new NotFoundError('Product is not found');
+      throw new NotFoundError('Không tìm thấy sản phẩm');
     }
 
     return result;
@@ -81,7 +81,7 @@ class ProductService {
   static publishedProduct = async ({ product_id }) => {
     const result = await publishedProduct({ product_id });
     if (!result) {
-      throw new NotFoundError('Category is not found');
+      throw new NotFoundError('Không tìm thấy sản phẩm');
     }
 
     return result;
@@ -90,7 +90,7 @@ class ProductService {
   static unPublishedProduct = async ({ product_id }) => {
     const result = await unPublishedProduct({ product_id });
     if (!result) {
-      throw new NotFoundError('Category is not found');
+      throw new NotFoundError('Không tìm thấy sản phẩm');
     }
 
     return result;
@@ -104,7 +104,7 @@ class ProductService {
 
     const foundCategory = await findByCategoryId(body?.product_category);
     if (!foundCategory) {
-      throw new NotFoundError('category is not found');
+      throw new NotFoundError('Không tìm thấy danh mục');
     }
 
     return await createProduct(body);
@@ -118,7 +118,7 @@ class ProductService {
 
     const updated = await updateProduct({ productId, bodyUpdate });
     if (!updateSearchIndex) {
-      throw new NotFoundError('Product is not found');
+      throw new NotFoundError('Không tìm thấy sản phẩm');
     }
 
     return updated;
@@ -127,7 +127,7 @@ class ProductService {
   static deleteProduct = async (productId) => {
     const deleted = await deleteProduct(productId);
     if (!deleted) {
-      throw new NotFoundError('Product is not found');
+      throw new NotFoundError('Không tìm thấy sản phẩm');
     }
 
     return deleted;

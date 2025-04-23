@@ -4,18 +4,18 @@ const { OK, CREATED } = require('../../core/success.response');
 const CategoryService = require('../../services/category.service');
 
 class CategoryController {
-  pushlishCategory = async (req, res, next) => {
+  publishCategory = async (req, res, next) => {
     new OK({
-      message: 'Publish category successfully',
+      message: 'Công khai danh mục thành công',
       metadata: await CategoryService.publishCategory({
         category_id: req.params._id,
       }),
     }).send(res);
   };
 
-  unPushlishCategory = async (req, res, next) => {
+  unPublishCategory = async (req, res, next) => {
     new OK({
-      message: 'unPublish category successfully',
+      message: 'Thay đổi danh mục vào bản pháp',
       metadata: await CategoryService.unPublishCategory({
         category_id: req.params._id,
       }),
@@ -24,14 +24,14 @@ class CategoryController {
 
   createCategory = async (req, res, next) => {
     new CREATED({
-      message: 'Create category successfully',
+      message: 'Tạo danh mục thành công',
       metadata: await CategoryService.createCategory(req.body),
     }).send(res);
   };
 
   updateCategory = async (req, res, next) => {
     new OK({
-      message: 'update category successfully',
+      message: 'Cập nhật danh mục thành công',
       metadata: await CategoryService.updateCategory({
         category_id: req.params._id,
         bodyUpdate: req.body,
@@ -41,7 +41,7 @@ class CategoryController {
 
   deleteCategory = async (req, res, next) => {
     new OK({
-      message: 'delete category successfully',
+      message: 'Xóa danh mục thành công',
       metadata: await CategoryService.deleteCategory({
         category_id: req.params._id,
       }),
@@ -50,28 +50,28 @@ class CategoryController {
 
   getAllCategories = async (req, res, next) => {
     new OK({
-      message: 'get all categories successfully',
+      message: 'Lấy danh sách danh mục thành công',
       metadata: await CategoryService.getAllCategories(req.query),
     }).send(res);
   };
 
   getAllCategoriesPublish = async (req, res, next) => {
     new OK({
-      message: 'get all categories publish successfully',
+      message: 'Lấy danh sách danh mục công khai thành công',
       metadata: await CategoryService.getAllCategoriesPublish(req.query),
     }).send(res);
   };
 
   getAllCategoriesDraff = async (req, res, next) => {
     new OK({
-      message: 'get all categories draff successfully',
+      message: 'Lấy danh sách danh mục nháp thành công',
       metadata: await CategoryService.getAllCategoriesDraff(req.query),
     }).send(res);
   };
 
   getListSearchCategory = async (req, res, next) => {
     new OK({
-      message: 'get list search success',
+      message: 'Lấy danh sách danh mục tìm kiếm thành công',
       metadata: await CategoryService.searchCategory(req.params),
     }).send(res);
   };

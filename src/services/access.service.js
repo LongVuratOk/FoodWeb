@@ -16,27 +16,30 @@ const { createTokenPair } = require('../auth/generateToken');
 const { findByEmail } = require('../models/repositories/user.repo');
 
 class AccessService {
+  /**
+   * Xử lý refresh token
+   * - Kiểm tra refreshToken có sử dụng lại hay không
+   * - Xác thực token và người dùng
+   * - Tạo access và refresh token mới
+   * - Cập nhập refresh token vào db
+   */
   static handleRefreshToken = async ({ refreshToken, user, keyStore }) => {
     const { userId, email } = user;
 
-    // check refreshToken is used
     if (keyStore.refreshTokenUsed.includes(refreshToken)) {
       await KeyTokenService.deleteKeyByUserId(userId);
-      throw new ForbiddenError('Somthing wrong happen! Relogin');
+      throw new ForbiddenError('Có vấn đề. Hãy đăng nhập lại');
     }
 
-    // check refresh token is exists
     if (keyStore.refreshToken !== refreshToken) {
-      throw new UnauthorizedError('Not registered');
+      throw new UnauthorizedError('Tài khoản chưa đăng ký');
     }
 
-    // check email
     const foundUer = await findByEmail({ email });
     if (!foundUer) {
-      throw new UnauthorizedError('Not registered');
+      throw new UnauthorizedError('Tài khoản chưa đăng ký');
     }
 
-    // create token pair
     const tokens = await createTokenPair(
       { userId, email },
       keyStore.publicKey,
@@ -57,6 +60,10 @@ class AccessService {
     };
   };
 
+  /**
+   * Xử lý đăng xuất
+   * - Xóa cặp key tạo token khỏi db
+   */
   static logout = async (keyStore) => {
     const delKey = await KeyTokenService.removeKeyById(keyStore._id);
     return {
@@ -67,20 +74,23 @@ class AccessService {
     };
   };
 
+  /**
+   * Xử lý đăng nhập
+   * - Xác thực email và mật khẩu
+   * - Tạo cặp key và cặp token mới
+   * - Lưu thông tin key và token vào db
+   */
   static login = async ({ email, password, refreshToken = null }) => {
-    // check email
     const foundUser = await findByEmail({ email });
     if (!foundUser) {
-      throw new BadRequestError('Email/password wrong');
+      throw new BadRequestError('Email hoặc mật khẩu không hợp lệ');
     }
 
-    // compare pass
     const match = await bcrypt.compare(password, foundUser.password);
     if (!match) {
-      throw new BadRequestError('Email/password wrong');
+      throw new BadRequestError('Email hoặc mật khẩu không hợp lệ');
     }
 
-    // crreate key
     const privateKey = await crypt.randomBytes(64).toString('hex');
     const publicKey = await crypt.randomBytes(64).toString('hex');
 
@@ -89,10 +99,8 @@ class AccessService {
       email,
     };
 
-    // create access, refresh token
     const tokens = await createTokenPair(payload, publicKey, privateKey);
 
-    // save key pair
     await KeyTokenService.createKeyToken({
       userId: foundUser._id,
       publicKey,
@@ -109,20 +117,23 @@ class AccessService {
     };
   };
 
+  /**
+   * Đăng ký tài khoản mới
+   * - Xác thực dữ liệu đầu vào
+   * - Kiểm tra email tồn tại
+   * - Tạo user, key, token mới
+   */
   static signUp = async ({ name, email, password }) => {
-    // validate data
     const { error } = validateCreateUser({ name, email, password });
     if (error) {
       throw new BadRequestError(error.details[0].message);
     }
 
-    // check user is exists
-    const foundUser = await findByEmail({ email });
-    if (foundUser) {
-      throw new BadRequestError('Email already exists');
+    const userFound = await findByEmail({ email });
+    if (userFound) {
+      throw new BadRequestError('Email đã tồn tại');
     }
 
-    // create new user
     const newUser = await UserModel.create({
       name,
       email,
@@ -131,18 +142,15 @@ class AccessService {
     });
 
     if (newUser) {
-      // create key
       const privateKey = await crypt.randomBytes(64).toString('hex');
       const publicKey = await crypt.randomBytes(64).toString('hex');
 
-      // create access, refresh token
       const tokens = await createTokenPair(
         { userId: newUser._id, email },
         publicKey,
         privateKey,
       );
 
-      // create token
       const keyStore = await KeyTokenService.createKeyToken({
         userId: newUser._id,
         publicKey,

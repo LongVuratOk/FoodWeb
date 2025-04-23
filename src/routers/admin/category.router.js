@@ -7,7 +7,7 @@ const CategoryController = require('../../controllers/admin/category.controller'
 const router = express.Router();
 
 // authentication
-//router.use(authentication);
+router.use(authentication);
 
 router.get('/all', asyncHandle(CategoryController.getAllCategories));
 router.get(
@@ -20,10 +20,10 @@ router.get(
   asyncHandle(CategoryController.getListSearchCategory),
 );
 
-router.post('/publish/:_id', asyncHandle(CategoryController.pushlishCategory));
+router.post('/publish/:_id', asyncHandle(CategoryController.publishCategory));
 router.post(
   '/unPublish/:_id',
-  asyncHandle(CategoryController.unPushlishCategory),
+  asyncHandle(CategoryController.unPublishCategory),
 );
 router.post('/create', asyncHandle(CategoryController.createCategory));
 router.patch('/:_id', asyncHandle(CategoryController.updateCategory));

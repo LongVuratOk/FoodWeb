@@ -10,12 +10,12 @@ const KeyTokenService = require('../services/keyToken.service');
 const authentication = asyncHandle(async (req, res, next) => {
   const userId = req.headers[HEADER.CLIENT_ID];
   if (!userId) {
-    throw new UnauthorizedError('Invalid request');
+    throw new UnauthorizedError('Yêu cầu có người dùng');
   }
 
   const keyStore = await KeyTokenService.findByUserId(userId);
   if (!keyStore) {
-    throw new NotFoundError('Not Found keyStore');
+    throw new NotFoundError('Không tìm thấy khóa xác thực cho người dùng');
   }
 
   if (req.headers[HEADER.REFRESHTOKEN]) {
@@ -23,7 +23,7 @@ const authentication = asyncHandle(async (req, res, next) => {
       const refreshToken = req.headers[HEADER.REFRESHTOKEN];
       const decode = JWT.verify(refreshToken, keyStore.privateKey);
       if (userId !== decode.userId) {
-        throw new UnauthorizedError('Invalid userId');
+        throw new UnauthorizedError('Token không hợp lệ');
       }
       req.keyStore = keyStore;
       req.user = decode;
@@ -35,12 +35,12 @@ const authentication = asyncHandle(async (req, res, next) => {
   }
   const accessToken = req.headers[HEADER.AUTHORIZATION];
   if (!accessToken) {
-    throw new UnauthorizedError('Invalid request 2');
+    throw new UnauthorizedError('Yêu cầu có token để xác minh');
   }
   try {
     const decode = JWT.verify(accessToken, keyStore.publicKey);
     if (userId !== decode.userId) {
-      throw new UnauthorizedError('Invalid userId');
+      throw new UnauthorizedError('Token không hợp lệ');
     }
 
     req.keyStore = keyStore;

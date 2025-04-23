@@ -18,6 +18,10 @@ const findByUserIdCart = async (userId) => {
     .lean();
 };
 
+const findByCartId = async (cartId) => {
+  return await CartModel.findById(cartId);
+};
+
 const deleteItemCart = async (query, updateSet) => {
   const { modifiedCount } = await CartModel.updateOne(query, updateSet);
   return modifiedCount;
@@ -27,4 +31,5 @@ module.exports = {
   createUserCart,
   findByUserIdCart,
   deleteItemCart,
+  findByCartId,
 };

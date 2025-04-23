@@ -6,7 +6,7 @@ const DiscountService = require('../../services/discount.service');
 class DiscountController {
   createDiscount = async (req, res, next) => {
     new CREATED({
-      message: 'Create Discount successfully',
+      message: 'Tạo mã giảm giá thành công',
       metadata: await DiscountService.createDiscount({
         ...req.body,
         createBy: req.user.userId,
@@ -16,7 +16,7 @@ class DiscountController {
 
   deleteDiscountCodeId = async (req, res, next) => {
     new OK({
-      message: 'Delete discount successfully',
+      message: 'Xóa mã giảm giá thành công',
       metadata: await DiscountService.deleteDiscountCodeId({
         discountId: req.params._id,
       }),
@@ -25,14 +25,14 @@ class DiscountController {
 
   getAllDiscountCode = async (req, res, next) => {
     new OK({
-      message: 'Get all Discounts successfully',
+      message: 'Lấy danh sách mã giảm giá thành công',
       metadata: await DiscountService.getAllDiscount(req.query),
     }).send(res);
   };
 
   getAllDiscountCodeWithProducts = async (req, res, next) => {
     new OK({
-      message: 'get all products in Discount successfully',
+      message: 'Lấy danh sách sản phẩm được áp dụng mã giảm giá thành công',
       metadata: await DiscountService.getAllDiscountsCodeWithProducts({
         ...req.query,
         code: req.params.code,
@@ -42,7 +42,7 @@ class DiscountController {
 
   getDiscountAmount = async (req, res, next) => {
     new OK({
-      message: 'get applies discount into cart successfully',
+      message: 'Áp dụng mã giảm giá thành công',
       metadata: await DiscountService.getDiscountAmount({
         ...req.body,
         userId: req.user.userId,
@@ -52,7 +52,7 @@ class DiscountController {
 
   addUserForDiscount = async (req, res, next) => {
     new OK({
-      message: 'Apply discount for product successfully',
+      message: 'OK',
       metadata: await DiscountService.addUserForDiscount({
         code: req.params.code,
         userId: req.user.userId,
@@ -62,7 +62,7 @@ class DiscountController {
 
   getCancelDiscount = async (req, res, next) => {
     new OK({
-      message: 'get cancel discount into cart successfully',
+      message: 'Hủy bỏ sử dụng mã giảm giá thành công',
       metadata: await DiscountService.cancelDiscountCode({
         discountId: req.params._id,
         userId: req.user.userId,

@@ -16,8 +16,8 @@ class DB {
 
     mongoose
       .connect(connectString)
-      .then((_) => console.log(`MongoDB connected`))
-      .catch((err) => console.log(`MongoDB connection error: ${err}`));
+      .then((_) => console.log(`Kết nối CSDL thành công`))
+      .catch((err) => console.log(`Lỗi kết nối CSDL: ${err}`));
   }
 
   static getInstance() {

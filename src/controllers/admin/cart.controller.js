@@ -6,7 +6,7 @@ const CartService = require('../../services/cart.service');
 class CartController {
   addToCart = async (req, res, next) => {
     new OK({
-      message: 'Add product into cart successfully',
+      message: 'Thêm sản phẩm vào giỏ hàng thành công',
       metadata: await CartService.addToCart({
         userId: req.user.userId,
         product: req.body,
@@ -15,7 +15,7 @@ class CartController {
   };
   updateCartQuatity = async (req, res, next) => {
     new OK({
-      message: 'Update quatity successfully',
+      message: 'Cập nhật số lượng thành công',
       metadata: await CartService.updateUserCartQuantity({
         userId: req.user.userId,
         product: req.body,
@@ -25,7 +25,7 @@ class CartController {
 
   deleteItemCart = async (req, res, next) => {
     new OK({
-      message: 'Delete product from cart successfully',
+      message: 'Xóa sản phẩm khỏi giỏ hàng thành công',
       metadata: await CartService.deleteItemCart({
         userId: req.user.userId,
         productId: req.body.productId,
@@ -35,7 +35,7 @@ class CartController {
 
   getListUserCart = async (req, res, next) => {
     new OK({
-      message: 'get cart user successfully',
+      message: 'Lấy danh sách sản phẩm giỏ hàng thành công',
       metadata: await CartService.getListUserCart(req.user.userId),
     }).send(res);
   };

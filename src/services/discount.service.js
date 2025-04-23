@@ -43,16 +43,16 @@ class DiscountService {
     } = data;
 
     if (new Date() < new Date(start_date) || new Date() > new Date(end_date)) {
-      throw new BadRequestError('Discount code has expired');
+      throw new BadRequestError('Thời gian sử dụng mã giảm giá không hợp lệ');
     }
 
     if (new Date(start_date) > new Date(end_date)) {
-      throw new BadRequestError('start date must be less than end date');
+      throw new BadRequestError('Ngày bắt đầu phải nhỏ hơn ngày hết hạn');
     }
 
     const discountFound = await findDiscountByCode({ discount_code: code });
     if (discountFound && discountFound.discount_is_active) {
-      throw new BadRequestError('Discount code already exists');
+      throw new BadRequestError('Mã giảm giá đã tồn tại');
     }
 
     const bodyCreate = {
@@ -79,7 +79,6 @@ class DiscountService {
     return newDiscount;
   };
 
-  // update discount
   static updateDiscount = async () => {};
 
   static getAllDiscountsCodeWithProducts = async ({
@@ -90,7 +89,7 @@ class DiscountService {
   }) => {
     const discountFound = await findDiscountByCode({ discount_code: code });
     if (!discountFound || !discountFound.discount_is_active) {
-      throw new NotFoundError('Discount is not exists');
+      throw new NotFoundError('Mã giảm giá không tồn tại');
     }
 
     const { discount_applies_to, discount_product_ids } = discountFound;
@@ -118,7 +117,7 @@ class DiscountService {
       });
     }
     if (!products) {
-      throw new BadRequestError('Product is not exists');
+      throw new BadRequestError('Sản phẩm không tồn tại');
     }
     return products;
   };
@@ -138,7 +137,7 @@ class DiscountService {
       unSelect: ['__v'],
     });
     if (!discount) {
-      throw new NotFoundError('Discount is not exists');
+      throw new NotFoundError('Mã giảm giá không tồn tại');
     }
 
     return discount;
@@ -147,7 +146,7 @@ class DiscountService {
   static deleteDiscountCodeId = async ({ discountId }) => {
     const deleteDiscount = await deleteDiscountCodeId(discountId);
     if (!deleteDiscount) {
-      throw new NotFoundError('Discount is not exists');
+      throw new NotFoundError('Mã giảm giá không tồn tại');
     }
     return deleteDiscount;
   };
@@ -157,7 +156,7 @@ class DiscountService {
       discount_code: code,
     });
     if (!discountFound) {
-      throw new NotFoundError('Discount is not found');
+      throw new NotFoundError('Mã giảm giá không tồn tại');
     }
 
     const {
@@ -174,19 +173,18 @@ class DiscountService {
     } = discountFound;
 
     if (!discount_is_active) {
-      throw new BadRequestError('Discount code has expired');
+      throw new BadRequestError('Mã giảm giá đã hết hạn');
     }
     if (!discount_max_uses) {
-      throw new BadRequestError('Discount are out');
+      throw new BadRequestError('Mã giảm giá đã sử dụng hết');
     }
     if (
       new Date() < new Date(discount_start_date) ||
       new Date() > new Date(discount_end_date)
     ) {
-      throw new BadRequestError('Discount code has expired');
+      throw new BadRequestError('Thời gian sử dụng mã giảm giá không hợp lệ');
     }
 
-    // check minium cart value
     let totalOrder = 0;
     if (discount_min_order_value >= 0) {
       totalOrder = products.reduce((acc, product) => {
@@ -195,7 +193,7 @@ class DiscountService {
 
       if (discount_min_order_value > totalOrder) {
         throw new BadRequestError(
-          'discount requires a minium order value of ',
+          'Yêu cầu giá trị sản phẩm phải lớn giá trị tối thiểu',
           discount_min_order_value,
         );
       }
@@ -207,7 +205,7 @@ class DiscountService {
 
         const usedCount = userDiscountUsed ? userDiscountUsed.count : 0;
         if (usedCount >= discount_max_uses_per_user) {
-          throw new BadRequestError('user discount limit');
+          throw new BadRequestError('Bạn đã đạt giới hạn để sử dụng');
         }
 
         let amount =
@@ -230,7 +228,7 @@ class DiscountService {
   static addUserForDiscount = async ({ code, userId }) => {
     const discountFound = await findDiscountByCode({ discount_code: code });
     if (!discountFound) {
-      throw new NotFoundError('Discount is not found');
+      throw new NotFoundError('Mã giảm giá không tìm thấy');
     }
 
     const userIndex = discountFound.discount_users_used.findIndex(
@@ -245,7 +243,7 @@ class DiscountService {
         discountFound.discount_users_used[userIndex].count >=
           discountFound.discount_max_uses_per_user
       ) {
-        throw new BadRequestError('User has used maximum for discount');
+        throw new BadRequestError('Bạn đã đạt giới hạn sử dụng mã giảm giá');
       }
       discountFound.discount_users_used[userIndex].count += 1;
     }
@@ -264,7 +262,7 @@ class DiscountService {
       options = { new: true };
     const result = await findOneAndUpdateDiscount(query, bodyUpdate, options);
     if (!result) {
-      throw new NotFoundError('Discount is not found');
+      throw new NotFoundError('Không tìm thấy mã giảm giá');
     }
     return {};
   };
@@ -272,18 +270,18 @@ class DiscountService {
   static async cancelDiscountCode({ discountId, userId }) {
     const discountFound = await findByDiscountId(discountId);
     if (!discountFound) {
-      throw new NotFoundError('Discount is not found');
+      throw new NotFoundError('Không tìm thấy mã giảm giá');
     }
 
     const userFound = discountFound.discount_users_used.find(
       (user) => user.userId === userId,
     );
     if (!userFound) {
-      throw new NotFoundError('User is not found');
+      throw new NotFoundError('Không tìm thấy người dùng');
     }
 
     if (userFound.count <= 0) {
-      throw new BadRequestError('User has no usage to cancel');
+      throw new BadRequestError('Người dùng chưa sử dụng mã giảm giá');
     }
     const query = { _id: discountId, 'discount_users_used.userId': userId };
     let bodyUpdate;
@@ -311,7 +309,7 @@ class DiscountService {
 
     const result = await findOneAndUpdateDiscount(query, bodyUpdate, options);
     if (!result) {
-      throw new NotFoundError('Discount is not found');
+      throw new NotFoundError('Không tìm thấy mã giảm giá');
     }
     return {};
   }
