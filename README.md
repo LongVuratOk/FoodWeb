@@ -36,7 +36,10 @@ git clone https://github.com/LongVuratOk/FoodWeb.git
 # Cài đặt thư viện
 npm install
 
+---
+
 ## 🗂️ Cấu trúc thư mục
+
 your-project-name/
 ├── src/
 │   ├── auth/
@@ -59,6 +62,7 @@ your-project-name/
 ---
 
 ## ⚙️ Cấu hình môi trường (.env)
+
 - MONGO_URI = 
 - CLOUD_NAME = 
 - CLOUD_API_KEY = 
@@ -67,11 +71,13 @@ your-project-name/
 ---
 
 ## Chạy ở chế độ phát triển
+
 npm run dev
 
 ---
 
 ## 📡 API Docs
+
 - Tạm thời tham khảo trong thư mục routes/
 
 ---
