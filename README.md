@@ -32,7 +32,7 @@
 1. Clone dự án:
 
    ```bash
-   git clone https://github.com/LongVuratOk/FoodWeb.git
+   git clone https://github.com/trlongvu/FoodWeb.git
    ```
 
 2. Cài đặt thư viện:
