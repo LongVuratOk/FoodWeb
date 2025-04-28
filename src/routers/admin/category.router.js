@@ -6,28 +6,24 @@ const { authentication } = require('../../auth/authentication');
 const CategoryController = require('../../controllers/admin/category.controller');
 const router = express.Router();
 
-// authentication
-router.use(authentication);
+//router.use(authentication);
 
-router.get('/all', asyncHandle(CategoryController.getAllCategories));
-router.get(
-  '/publish/all',
-  asyncHandle(CategoryController.getAllCategoriesPublish),
-);
-router.get('/draff/all', asyncHandle(CategoryController.getAllCategoriesDraff));
+router.get('/', asyncHandle(CategoryController.getAllCategories));
+router.get('/publish/', asyncHandle(CategoryController.getAllCategoriesPub));
+router.get('/draff/', asyncHandle(CategoryController.getAllCategoriesDraff));
 router.get(
   '/search/:keySearch',
   asyncHandle(CategoryController.getListSearchCategory),
 );
 
+router.post('/create', asyncHandle(CategoryController.createCategory));
 router.post('/publish/:_id', asyncHandle(CategoryController.publishCategory));
 router.post(
   '/unPublish/:_id',
   asyncHandle(CategoryController.unPublishCategory),
 );
-router.post('/create', asyncHandle(CategoryController.createCategory));
+
 router.patch('/:_id', asyncHandle(CategoryController.updateCategory));
 router.delete('/:_id', asyncHandle(CategoryController.deleteCategory));
-router.post('/shop/refreshToken', asyncHandle());
 
 module.exports = router;

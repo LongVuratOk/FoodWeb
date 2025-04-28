@@ -119,12 +119,12 @@ const findAllProductForDiscount = async ({
 const checkProductByServer = async (products) => {
   return await Promise.all(
     products.map(async (product) => {
-      const productFound = await ProductModel.findById(product.productId);
+      const productFound = await ProductModel.findById(product.productId._id);
       if (productFound) {
         return {
           price: productFound.product_price,
           quantity: product.quantity,
-          productId: product.productId,
+          productId: product.productId._id,
         };
       }
     }),

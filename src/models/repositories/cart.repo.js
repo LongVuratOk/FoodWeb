@@ -10,6 +10,7 @@ const createUserCart = async (query, updateOrInsert, options) => {
 const findByUserIdCart = async (userId) => {
   return await CartModel.findOne({
     cart_userId: convertToObjectIdMongodb(userId),
+    cart_state: 'active',
   })
     .populate(
       'cart_products.productId',

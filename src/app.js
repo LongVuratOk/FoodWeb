@@ -36,7 +36,7 @@ app.use((err, req, res, next) => {
     status: 'error',
     code: statusCode,
     message: message,
-    // stack: err.stack,
+    stack: err.stack,
   });
 });
 

@@ -4,10 +4,13 @@ const { OK, CREATED } = require('../../core/success.response');
 const CategoryService = require('../../services/category.service');
 
 class CategoryController {
+  constructor() {
+    this.categoryService = CategoryService;
+  }
   publishCategory = async (req, res, next) => {
     new OK({
       message: 'Công khai danh mục thành công',
-      metadata: await CategoryService.publishCategory({
+      metadata: await this.categoryService.publishCategory({
         category_id: req.params._id,
       }),
     }).send(res);
@@ -15,8 +18,8 @@ class CategoryController {
 
   unPublishCategory = async (req, res, next) => {
     new OK({
-      message: 'Thay đổi danh mục vào bản pháp',
-      metadata: await CategoryService.unPublishCategory({
+      message: 'Chuyển danh mục vào bản pháp thành công',
+      metadata: await this.categoryService.unPublishCategory({
         category_id: req.params._id,
       }),
     }).send(res);
@@ -25,14 +28,14 @@ class CategoryController {
   createCategory = async (req, res, next) => {
     new CREATED({
       message: 'Tạo danh mục thành công',
-      metadata: await CategoryService.createCategory(req.body),
+      metadata: await this.categoryService.createCategory(req.body),
     }).send(res);
   };
 
   updateCategory = async (req, res, next) => {
     new OK({
       message: 'Cập nhật danh mục thành công',
-      metadata: await CategoryService.updateCategory({
+      metadata: await this.categoryService.updateCategory({
         category_id: req.params._id,
         bodyUpdate: req.body,
       }),
@@ -42,7 +45,7 @@ class CategoryController {
   deleteCategory = async (req, res, next) => {
     new OK({
       message: 'Xóa danh mục thành công',
-      metadata: await CategoryService.deleteCategory({
+      metadata: await this.categoryService.deleteCategory({
         category_id: req.params._id,
       }),
     }).send(res);
@@ -51,28 +54,28 @@ class CategoryController {
   getAllCategories = async (req, res, next) => {
     new OK({
       message: 'Lấy danh sách danh mục thành công',
-      metadata: await CategoryService.getAllCategories(req.query),
+      metadata: await this.categoryService.getAllCategories(req.query),
     }).send(res);
   };
 
-  getAllCategoriesPublish = async (req, res, next) => {
+  getAllCategoriesPub = async (req, res, next) => {
     new OK({
       message: 'Lấy danh sách danh mục công khai thành công',
-      metadata: await CategoryService.getAllCategoriesPublish(req.query),
+      metadata: await this.categoryService.getAllCategoriesPublish(req.query),
     }).send(res);
   };
 
   getAllCategoriesDraff = async (req, res, next) => {
     new OK({
       message: 'Lấy danh sách danh mục nháp thành công',
-      metadata: await CategoryService.getAllCategoriesDraff(req.query),
+      metadata: await this.categoryService.getAllCategoriesDraff(req.query),
     }).send(res);
   };
 
   getListSearchCategory = async (req, res, next) => {
     new OK({
       message: 'Lấy danh sách danh mục tìm kiếm thành công',
-      metadata: await CategoryService.searchCategory(req.params),
+      metadata: await this.categoryService.searchCategory(req.params),
     }).send(res);
   };
 }

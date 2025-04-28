@@ -1,7 +1,10 @@
 'use strict';
 
 const { NotFoundError, BadRequestError } = require('../core/error.response');
-const { findByCartId } = require('../models/repositories/cart.repo');
+const {
+  findByCartId,
+  findByUserIdCart,
+} = require('../models/repositories/cart.repo');
 const { checkProductByServer } = require('../models/repositories/product.repo');
 const { getDiscountAmount } = require('./discount.service');
 
@@ -22,10 +25,13 @@ class CheckoutService {
     };
 
     const { code, products } = order_products;
+    const cartId = await findByUserIdCart(userId);
+    console.log('cartId');
 
-    const checkProductServer = await checkProductByServer(products);
+    const checkProductServer = await checkProductByServer(cartId.cart_products);
+    console.log('checkProductServer', checkProductServer);
     if (!checkProductServer[0]) {
-      throw new BadRequestError('Order wrong');
+      throw new BadRequestError('Sản phẩm không tồn tại hoặc đã hết hàng');
     }
 
     const checkoutPrice = checkProductServer.reduce((acc, product) => {
