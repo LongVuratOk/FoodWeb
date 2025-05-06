@@ -8,6 +8,11 @@ const router = express.Router();
 
 router.post('/shop/login', asyncHandle(AccessController.login));
 router.post('/shop/signup', asyncHandle(AccessController.signUp));
+router.get('/shop/resendMail', asyncHandle(AccessController.resendVerify));
+router.get(
+  '/shop/verify/:token',
+  asyncHandle(AccessController.handleVerifyEmail),
+);
 
 // authentication
 router.use(authentication);

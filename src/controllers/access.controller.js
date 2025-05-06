@@ -10,7 +10,8 @@ class AccessController {
 
   signUp = async (req, res, next) => {
     new CREATED({
-      message: 'Tạo tài khoản thành công',
+      message:
+        'Tạo tài khoản thành công. Vui lòng kiểm tra email để xác thực tài khoản',
       metadata: await this.accessService.signUp(req.body),
     }).send(res);
   };
@@ -36,6 +37,22 @@ class AccessController {
         refreshToken: req.refreshToken,
         user: req.user,
         keyStore: req.keyStore,
+      }),
+    }).send(res);
+  };
+
+  resendVerify = async (req, res, next) => {
+    new OK({
+      message: 'Vui lòng kiểm tra email để xác thực tài khoản',
+      metadata: await this.accessService.resendVerify(req.body.email),
+    }).send(res);
+  };
+
+  handleVerifyEmail = async (req, res, next) => {
+    new OK({
+      message: 'Xác thực tài khoản thành công',
+      metadata: await this.accessService.handleVerifyEmail({
+        token: req.params.token,
       }),
     }).send(res);
   };
