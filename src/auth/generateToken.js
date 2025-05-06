@@ -17,6 +17,16 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
   }
 };
 
+const createTokenVerify = async (payload, verifyKey) => {
+  try {
+    return JWT.sign(payload, verifyKey, {
+      expiresIn: '180s',
+    });
+  } catch (error) {
+    return error;
+  }
+};
 module.exports = {
   createTokenPair,
+  createTokenVerify,
 };

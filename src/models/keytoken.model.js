@@ -20,6 +20,10 @@ const keySchema = new Schema(
       type: String,
       required: true,
     },
+    verifyKey: {
+      type: String,
+      default: '',
+    },
     refreshToken: {
       type: String,
       required: true,

@@ -7,11 +7,18 @@ class KeyTokenService {
   constructor() {
     this.keyTokenRepository = new KeyTokenRepository();
   }
-  async createKeyToken({ userId, publicKey, privateKey, refreshToken }) {
+  async createKeyToken({
+    userId,
+    publicKey,
+    privateKey,
+    verifyKey,
+    refreshToken,
+  }) {
     const filter = { user: userId },
       update = {
         publicKey,
         privateKey,
+        verifyKey,
         refreshToken,
         refreshTokenUsed: [],
       },
