@@ -55,16 +55,21 @@ class BaseRepository {
       .lean();
   }
 
+  countDoc(filter) {
+    return this.getModel().countDocuments(filter);
+  }
+
   async query(
     filter = {},
     limit = PAGINATE_OPTIONS.LIMIT,
     page = PAGINATE_OPTIONS.PAGE,
+    fieldSelect = [],
   ) {
     limit = +limit || PAGINATE_OPTIONS.LIMIT;
     page = +page || PAGINATE_OPTIONS.PAGE;
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
-      this.getModel().find(filter).skip(skip).limit(limit),
+      this.getModel().find(filter).skip(skip).limit(limit).select(fieldSelect),
       this.getModel().countDocuments(filter),
     ]);
     return { data, total, limit, page, totalPage: Math.ceil(total / limit) };

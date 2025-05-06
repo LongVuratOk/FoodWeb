@@ -1,34 +1,76 @@
 'use strict';
 
 const { BadRequestError, NotFoundError } = require('../core/error.response');
-const { updateSearchIndex } = require('../models/product.model');
-const { findByCategoryId } = require('../models/repositories/category.repo');
-const {
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  queryProduct,
-  searchProduct,
-  publishedProduct,
-  unPublishedProduct,
-  findByProductId,
-} = require('../models/repositories/product.repo');
-const { getInfoData } = require('../utils');
+const CategoryRepository = require('../models/repositories/category.repo');
+const ProductRepository = require('../models/repositories/product.repo');
+const { convertToObjectIdMongodb } = require('../utils');
 const {
   validateCreateProduct,
   validateUpdateProduct,
 } = require('../validations/product.valid');
+const PAGINATE_OPTIONS = require('../constants/type.paginate');
 
 class ProductService {
-  static getAllProducts = async ({
-    limit = 50,
-    sort = 'ctime',
-    page = 1,
-    category,
-    priceFrom,
-    priceTo,
-    rating,
-  }) => {
+  constructor() {
+    this.productRepo = new ProductRepository();
+    this.categoryRepo = CategoryRepository;
+  }
+
+  async createProduct(body) {
+    const { error } = validateCreateProduct(body);
+    if (error) {
+      throw new BadRequestError(error.details[0].message);
+    }
+
+    const categoryExist = await this.categoryRepo.findOne({
+      _id: convertToObjectIdMongodb(body.product_category),
+    });
+    if (!categoryExist) {
+      throw new NotFoundError('Không tìm thấy danh mục');
+    }
+
+    return await this.productRepo.create(body);
+  }
+
+  async updateProduct(productId, bodyUpdate) {
+    const { error } = validateUpdateProduct(bodyUpdate);
+    if (error) {
+      throw new BadRequestError(error.details[0].message);
+    }
+
+    if (bodyUpdate.product_category) {
+      const categoryExist = await this.categoryRepo.findOne({
+        _id: convertToObjectIdMongodb(bodyUpdate.product_category),
+      });
+      if (!categoryExist) {
+        throw new NotFoundError('Không tìm thấy danh mục');
+      }
+    }
+
+    const updatedPro = await this.productRepo.updateOne(
+      { _id: convertToObjectIdMongodb(productId) },
+      bodyUpdate,
+    );
+    if (!updatedPro) {
+      throw new NotFoundError('Không tìm thấy sản phẩm');
+    }
+
+    return updatedPro;
+  }
+
+  async deleteProduct(productId) {
+    const deleted = await this.productRepo.deleteOne({
+      _id: convertToObjectIdMongodb(productId),
+    });
+    if (!deleted) {
+      throw new NotFoundError('Không tìm thấy sản phẩm');
+    }
+
+    return deleted;
+  }
+
+  async getAllProducts(query) {
+    const { category, priceFrom, priceTo, rating } = query;
     const filter = {};
     if (category) filter.product_category = category;
     if (priceFrom || priceTo) {
@@ -44,94 +86,79 @@ class ProductService {
       filter.product_ratingsAverage = {};
       filter.product_ratingsAverage.$gte = rating;
     }
-    return await queryProduct({ limit, sort, page, filter });
-  };
+    return await this.queryProducts({ filter, query });
+  }
 
-  static getAllProductsDraff = async ({
-    limit = 50,
-    sort = 'ctime',
-    page = 1,
-    filter = { isDraff: true },
-  }) => {
-    return await queryProduct({ limit, sort, page, filter });
-  };
+  async getAllProductsDraff(query) {
+    return await this.queryProducts({ filter: { isDraff: true }, query });
+  }
 
-  static getAllProductsPublished = async ({
-    limit = 50,
-    sort = 'ctime',
-    page = 1,
-    filter = { isPublished: true },
-  }) => {
-    return await queryProduct({ limit, sort, page, filter });
-  };
+  async getAllProductsPublished(query) {
+    return await this.queryProducts({ filter: { isPublished: true }, query });
+  }
 
-  static getProduct = async ({ product_id }) => {
-    const result = await findByProductId(product_id);
+  async getProduct({ product_id }) {
+    const result = await this.productRepo.findById(product_id);
     if (!result) {
       throw new NotFoundError('Không tìm thấy sản phẩm');
     }
 
     return result;
-  };
+  }
 
-  static searchProduct = async ({ keySearch }) => {
-    return await searchProduct({ keySearch });
-  };
+  async searchProduct({ keySearch }) {
+    return await this.productRepo.searchProduct({ keySearch });
+  }
 
-  static publishedProduct = async ({ product_id }) => {
-    const result = await publishedProduct({ product_id });
+  async publishedProduct({ product_id }) {
+    const result = await this.productRepo.publishProduct(product_id);
     if (!result) {
       throw new NotFoundError('Không tìm thấy sản phẩm');
     }
 
     return result;
-  };
+  }
 
-  static unPublishedProduct = async ({ product_id }) => {
-    const result = await unPublishedProduct({ product_id });
+  async unPublishedProduct({ product_id }) {
+    const result = await this.productRepo.unPublishProduct(product_id);
     if (!result) {
       throw new NotFoundError('Không tìm thấy sản phẩm');
     }
 
     return result;
-  };
+  }
 
-  static createProduct = async (body) => {
-    const { error } = validateCreateProduct(body);
-    if (error) {
-      throw new BadRequestError(error.details[0].message);
+  async queryProducts({ filter = {}, query }) {
+    const limit = parseInt(query.limit) || PAGINATE_OPTIONS.LIMIT;
+    const page = parseInt(query.page) || PAGINATE_OPTIONS.PAGE;
+    const keySearch = query.keySearch || null;
+    const order = query.order || PAGINATE_OPTIONS.SORT;
+    const sortBy = query.sortBy || 'createdAt';
+    const skip = (page - 1) * limit;
+    const sort = { [sortBy]: order === 'ctime' ? -1 : 1 };
+
+    if (page < 1) {
+      throw new BadRequestError('Số trang không hợp lệ');
     }
 
-    const foundCategory = await findByCategoryId(body?.product_category);
-    if (!foundCategory) {
-      throw new NotFoundError('Không tìm thấy danh mục');
-    }
-
-    return await createProduct(body);
-  };
-
-  static updateProduct = async (productId, bodyUpdate) => {
-    const { error } = validateUpdateProduct(bodyUpdate);
-    if (error) {
-      throw new BadRequestError(error.details[0].message);
-    }
-
-    const updated = await updateProduct({ productId, bodyUpdate });
-    if (!updateSearchIndex) {
-      throw new NotFoundError('Không tìm thấy sản phẩm');
-    }
-
-    return updated;
-  };
-
-  static deleteProduct = async (productId) => {
-    const deleted = await deleteProduct(productId);
-    if (!deleted) {
-      throw new NotFoundError('Không tìm thấy sản phẩm');
-    }
-
-    return deleted;
-  };
+    const result = await this.productRepo.queryProduct({
+      keySearch,
+      filter,
+      limit,
+      skip,
+      sort,
+    });
+    // const countDoc = await this.productRepo.countDoc(filter);
+    const total = result.length;
+    const totalPage = Math.ceil(total / limit);
+    return {
+      data: result,
+      total,
+      limit,
+      page,
+      totalPage,
+    };
+  }
 }
 
-module.exports = ProductService;
+module.exports = new ProductService(ProductRepository, CategoryRepository);

@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-const AccessController = require('../../controllers/admin/access.controller');
+const AccessController = require('../../controllers/access.controller');
 const { asyncHandle } = require('../../middlewares/asyncHandle.middleware');
 const { authentication } = require('../../auth/authentication');
 const router = express.Router();

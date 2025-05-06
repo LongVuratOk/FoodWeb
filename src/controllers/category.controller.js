@@ -1,11 +1,11 @@
 'use strict';
 
-const { OK, CREATED } = require('../../core/success.response');
-const CategoryService = require('../../services/category.service');
+const { OK, CREATED } = require('../core/success.response');
+const CategoryService = require('../services/category.service');
 
 class CategoryController {
   constructor() {
-    this.categoryService = CategoryService;
+    this.categoryService = new CategoryService();
   }
   publishCategory = async (req, res, next) => {
     new OK({

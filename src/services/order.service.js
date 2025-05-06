@@ -3,7 +3,7 @@
 const { default: axios } = require('axios');
 const config = require('../configs/momo.config');
 const { BadRequestError } = require('../core/error.response');
-const { createSignature } = require('../utils/signature.util');
+const { createSignature } = require('../helpers/signature.payment');
 const { validateCreateOrder } = require('../validations/order.valid');
 const {
   createOrder,

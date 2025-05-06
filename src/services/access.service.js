@@ -7,15 +7,17 @@ const {
   ForbiddenError,
   UnauthorizedError,
 } = require('../core/error.response');
-const UserModel = require('../models/user.model');
 const ROLES = require('../constants/type.roles');
 const { validateCreateUser } = require('../validations/user.valid');
 const { getInfoData } = require('../utils');
-const KeyTokenService = require('./keyToken.service');
 const { createTokenPair } = require('../auth/generateToken');
-const { findByEmail } = require('../models/repositories/user.repo');
+const UserRepository = require('../models/repositories/user.repo');
+const KeyTokenService = require('./keyToken.service');
 
 class AccessService {
+  constructor() {
+    this.userRepository = new UserRepository();
+  }
   /**
    * Xử lý refresh token
    * - Kiểm tra refreshToken có sử dụng lại hay không
@@ -23,7 +25,7 @@ class AccessService {
    * - Tạo access và refresh token mới
    * - Cập nhập refresh token vào db
    */
-  static handleRefreshToken = async ({ refreshToken, user, keyStore }) => {
+  async handleRefreshToken({ refreshToken, user, keyStore }) {
     const { userId, email } = user;
 
     if (keyStore.refreshTokenUsed.includes(refreshToken)) {
@@ -35,8 +37,8 @@ class AccessService {
       throw new UnauthorizedError('Tài khoản chưa đăng ký');
     }
 
-    const foundUer = await findByEmail({ email });
-    if (!foundUer) {
+    const userExist = await this.userRepository.findOne({ email });
+    if (!userExist) {
       throw new UnauthorizedError('Tài khoản chưa đăng ký');
     }
 
@@ -58,13 +60,13 @@ class AccessService {
       user,
       tokens,
     };
-  };
+  }
 
   /**
    * Xử lý đăng xuất
    * - Xóa cặp key tạo token khỏi db
    */
-  static logout = async (keyStore) => {
+  async logout(keyStore) {
     const delKey = await KeyTokenService.removeKeyById(keyStore._id);
     return {
       delKey: getInfoData({
@@ -72,7 +74,7 @@ class AccessService {
         object: delKey,
       }),
     };
-  };
+  }
 
   /**
    * Xử lý đăng nhập
@@ -80,14 +82,18 @@ class AccessService {
    * - Tạo cặp key và cặp token mới
    * - Lưu thông tin key và token vào db
    */
-  static login = async ({ email, password, refreshToken = null }) => {
-    const foundUser = await findByEmail({ email });
-    if (!foundUser) {
+  async login({ email, password, refreshToken = null }) {
+    const userExist = await this.userRepository.findOne({ email });
+    if (!userExist) {
       throw new BadRequestError('Email hoặc mật khẩu không hợp lệ');
     }
 
-    const match = await bcrypt.compare(password, foundUser.password);
-    if (!match) {
+    if (!userExist.verify) {
+      throw new UnauthorizedError('Tài khoản chưa được xác thực');
+    }
+
+    const isMatch = await bcrypt.compare(password, userExist.password);
+    if (!isMatch) {
       throw new BadRequestError('Email hoặc mật khẩu không hợp lệ');
     }
 
@@ -95,14 +101,14 @@ class AccessService {
     const publicKey = await crypt.randomBytes(64).toString('hex');
 
     const payload = {
-      userId: foundUser._id,
+      userId: userExist._id,
       email,
     };
 
     const tokens = await createTokenPair(payload, publicKey, privateKey);
 
     await KeyTokenService.createKeyToken({
-      userId: foundUser._id,
+      userId: userExist._id,
       publicKey,
       privateKey,
       refreshToken: tokens.refreshToken,
@@ -111,11 +117,11 @@ class AccessService {
     return {
       user: getInfoData({
         fields: ['_id', 'name', 'email'],
-        object: foundUser,
+        object: userExist,
       }),
       tokens,
     };
-  };
+  }
 
   /**
    * Đăng ký tài khoản mới
@@ -123,18 +129,18 @@ class AccessService {
    * - Kiểm tra email tồn tại
    * - Tạo user, key, token mới
    */
-  static signUp = async ({ name, email, password }) => {
+  async signUp({ name, email, password }) {
     const { error } = validateCreateUser({ name, email, password });
     if (error) {
       throw new BadRequestError(error.details[0].message);
     }
 
-    const userFound = await findByEmail({ email });
-    if (userFound) {
+    const userExist = await this.userRepository.findOne({ email });
+    if (userExist) {
       throw new BadRequestError('Email đã tồn tại');
     }
 
-    const newUser = await UserModel.create({
+    const newUser = await this.userRepository.create({
       name,
       email,
       password,
@@ -176,7 +182,9 @@ class AccessService {
     return {
       user: null,
     };
-  };
+  }
+
+  async verifyUser({ email, verifyCode }) {}
 }
 
 module.exports = AccessService;

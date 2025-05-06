@@ -1,20 +1,19 @@
 'use strict';
 
 const OrderModel = require('../order.model');
+const BaseRepository = require('./base.repo');
 
-const createOrder = async (order) => {
-  return await OrderModel.create(order);
-};
+class OrderRepository extends BaseRepository {
+  constructor() {
+    super(OrderModel);
+  }
+  updateOrderStatus(orderId) {
+    return this.getModel().findByIdAndUpdate(
+      orderId,
+      { is_payment: true },
+      { new: true },
+    );
+  }
+}
 
-const updateOrderStatus = async (orderId) => {
-  return await OrderModel.findByIdAndUpdate(
-    orderId,
-    { is_payment: true },
-    { new: true },
-  );
-};
-
-module.exports = {
-  createOrder,
-  updateOrderStatus,
-};
+module.exports = OrderRepository;

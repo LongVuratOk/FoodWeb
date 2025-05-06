@@ -4,13 +4,13 @@ const { convertToObjectIdMongodb, getUnSelectData } = require('../../utils');
 const CategoryModel = require('../category.model');
 const BaseRepository = require('./base.repo');
 
-class CategoryRepo extends BaseRepository {
+class CategoryRepository extends BaseRepository {
   constructor() {
     super(CategoryModel);
   }
 
   async publishCategory(id) {
-    const { modifiedCount } = await this.model.updateOne(
+    const { modifiedCount } = await this.getModel().updateOne(
       { _id: convertToObjectIdMongodb(id) },
       { isPublished: true, isDraff: false },
     );
@@ -18,15 +18,15 @@ class CategoryRepo extends BaseRepository {
   }
 
   async unPublishCategory(id) {
-    const { modifiedCount } = await this.model.updateOne(
+    const { modifiedCount } = await this.getModel().updateOne(
       { _id: convertToObjectIdMongodb(id) },
       { isPublished: false, isDraff: true },
     );
     return modifiedCount;
   }
 
-  async searchCategory({ keySearch }) {
-    return await this.model
+  searchCategory({ keySearch }) {
+    return this.getModel()
       .find(
         {
           $text: { $search: keySearch },
@@ -39,7 +39,7 @@ class CategoryRepo extends BaseRepository {
   }
 
   async queryCategory({ keySearch, filter, limit, skip, sort }) {
-    let query = this.model.find(filter);
+    let query = this.getModel().find(filter);
     if (keySearch) {
       const regexSearch = new RegExp(keySearch);
       query = query
@@ -60,4 +60,4 @@ class CategoryRepo extends BaseRepository {
   }
 }
 
-module.exports = new CategoryRepo();
+module.exports = CategoryRepository;

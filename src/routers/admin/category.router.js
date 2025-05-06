@@ -3,7 +3,7 @@
 const express = require('express');
 const { asyncHandle } = require('../../middlewares/asyncHandle.middleware');
 const { authentication } = require('../../auth/authentication');
-const CategoryController = require('../../controllers/admin/category.controller');
+const CategoryController = require('../../controllers/category.controller');
 const router = express.Router();
 
 //router.use(authentication);

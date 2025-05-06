@@ -22,7 +22,7 @@ const productSchema = new Schema(
       type: Number,
       required: true,
     },
-    product_quatity: {
+    product_quantity: {
       type: Number,
       required: true,
     },

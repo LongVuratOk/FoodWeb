@@ -1,7 +1,7 @@
 'use strict';
 
-const OrderService = require('../../services/order.service');
-const { OK } = require('../../core/success.response');
+const OrderService = require('../services/order.service');
+const { OK } = require('../core/success.response');
 
 class OrderController {
   createOrder = async (req, res, next) => {

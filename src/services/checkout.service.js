@@ -1,14 +1,18 @@
 'use strict';
 
-const { NotFoundError, BadRequestError } = require('../core/error.response');
-const {
-  findByCartId,
-  findByUserIdCart,
-} = require('../models/repositories/cart.repo');
+const { BadRequestError } = require('../core/error.response');
+const CartRepository = require('../models/repositories/cart.repo');
+const ProductRepository = require('../models/repositories/product.repo');
 const { checkProductByServer } = require('../models/repositories/product.repo');
+const DiscountService = require('./discount.service');
 const { getDiscountAmount } = require('./discount.service');
 
 class CheckoutService {
+  constructor() {
+    this.cartRepository = new CartRepository();
+    this.productRepository = new ProductRepository();
+  }
+
   /**
    * Kiểm tra đơn hàng trước khi thanh toán
    * - Kiểm tra sản phẩm
@@ -16,7 +20,7 @@ class CheckoutService {
    * - Kiểm tra và áp dụng mã giảm giá
    * - Tính tổng tiền thanh toán
    */
-  static checkoutReview = async ({ userId, order_products }) => {
+  async checkoutReview({ userId, order_products }) {
     const checkout_order = {
       totalPrice: 0,
       feeShip: 0,
@@ -25,11 +29,11 @@ class CheckoutService {
     };
 
     const { code, products } = order_products;
-    const cartId = await findByUserIdCart(userId);
-    console.log('cartId');
+    const cartId = await this.cartRepository.findByUserIdCart(userId);
 
-    const checkProductServer = await checkProductByServer(cartId.cart_products);
-    console.log('checkProductServer', checkProductServer);
+    const checkProductServer = await this.productRepository.getProductForCart(
+      cartId.cart_products,
+    );
     if (!checkProductServer[0]) {
       throw new BadRequestError('Sản phẩm không tồn tại hoặc đã hết hàng');
     }
@@ -46,7 +50,8 @@ class CheckoutService {
     };
 
     if (code) {
-      const { totalOrder, discount } = await getDiscountAmount({
+      const discountService = new DiscountService();
+      const { totalOrder, discount } = await discountService.getDiscountAmount({
         code,
         userId,
         products: checkProductServer,
@@ -64,9 +69,7 @@ class CheckoutService {
     return {
       checkout_order,
     };
-  };
-
-  static order = async ({}) => {};
+  }
 }
 
 module.exports = CheckoutService;

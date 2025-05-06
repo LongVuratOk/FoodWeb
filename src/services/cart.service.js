@@ -1,16 +1,23 @@
 'use strict';
 
 const { NotFoundError, BadRequestError } = require('../core/error.response');
+const CartRepository = require('../models/repositories/cart.repo');
 const {
   createUserCart,
   findByUserIdCart,
   deleteItemCart,
 } = require('../models/repositories/cart.repo');
+const ProductRepository = require('../models/repositories/product.repo');
 const { findByProductId } = require('../models/repositories/product.repo');
 const { convertToObjectIdMongodb } = require('../utils');
 
 class CartService {
-  static createOrInsertProductCart = async ({ userId, product }) => {
+  constructor() {
+    this.cartRepository = new CartRepository();
+    this.productRepository = new ProductRepository();
+  }
+
+  async createOrInsertProductCart({ userId, product }) {
     const { productId, quantity } = product;
     const query = {
         cart_userId: convertToObjectIdMongodb(userId),
@@ -29,10 +36,10 @@ class CartService {
         new: true,
       };
 
-    return await createUserCart(query, updateOrInsert, options);
-  };
+    return await this.cartRepository.updateOne(query, updateOrInsert, options);
+  }
 
-  static updateUserCartQuantity = async ({ userId, product }) => {
+  async updateUserCartQuantity({ userId, product }) {
     const { productId, quantity, old_quantity } = product;
     const newQuatity = old_quantity ? quantity - old_quantity : quantity;
     const query = {
@@ -49,24 +56,24 @@ class CartService {
         upsert: true,
         new: true,
       };
-    return await createUserCart(query, updateSet, options);
-  };
+    return await this.cartRepository.updateOne(query, updateSet, options);
+  }
 
-  static addToCart = async ({ userId, product }) => {
+  async addToCart({ userId, product }) {
     const { productId, quantity, old_quantity } = product;
 
-    const foundProduct = await findByProductId(productId);
-    if (!foundProduct) {
+    const productExist = await this.productRepository.findById(productId);
+    if (!productExist) {
       throw new NotFoundError('Sản phẩm không tồn tại');
     }
 
-    if (foundProduct.product_quatity < quantity) {
+    if (productExist.product_quatity < quantity) {
       throw new BadRequestError('Số lượng không đủ');
     }
 
-    const foundUserCart = await findByUserIdCart(userId);
-    if (!foundUserCart) {
-      return await CartService.createOrInsertProductCart({
+    const userCartExist = await this.cartRepository.findByUserIdCart(userId);
+    if (!userCartExist) {
+      return await this.createOrInsertProductCart({
         userId,
         product: {
           productId,
@@ -75,9 +82,9 @@ class CartService {
       });
     }
     let isProductInCart = false;
-    for (let index = 0; index < foundUserCart.cart_products.length; index++) {
+    for (let index = 0; index < userCartExist.cart_products.length; index++) {
       if (
-        foundUserCart.cart_products[index].productId._id.toString() ===
+        userCartExist.cart_products[index].productId._id.toString() ===
         productId
       ) {
         isProductInCart = true;
@@ -86,7 +93,7 @@ class CartService {
     }
 
     if (!isProductInCart) {
-      return await CartService.createOrInsertProductCart({
+      return await this.createOrInsertProductCart({
         userId,
         product: {
           productId,
@@ -95,7 +102,7 @@ class CartService {
       });
     }
 
-    return await CartService.updateUserCartQuantity({
+    return await this.updateUserCartQuantity({
       userId,
       product: {
         productId,
@@ -103,9 +110,9 @@ class CartService {
         old_quantity,
       },
     });
-  };
+  }
 
-  static deleteItemCart = async ({ userId, productId }) => {
+  async deleteItemCart({ userId, productId }) {
     const query = {
         cart_userId: convertToObjectIdMongodb(userId),
         cart_state: 'active',
@@ -120,16 +127,16 @@ class CartService {
           cart_count_product: -1,
         },
       };
-    const result = await deleteItemCart(query, updateSet);
+    const result = await this.cartRepository.deleteItemCart(query, updateSet);
     if (!result) {
       throw new NotFoundError('Giỏ hàng không tồn tại');
     }
     return result;
-  };
+  }
 
-  static getListUserCart = async (userId) => {
-    return await findByUserIdCart(userId);
-  };
+  async getListUserCart(userId) {
+    return await this.cartRepository.findByUserIdCart(userId);
+  }
 }
 
 module.exports = CartService;

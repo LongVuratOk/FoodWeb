@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-const OrderController = require('../../controllers/admin/order.controller');
+const OrderController = require('../../controllers/order.controller');
 const { asyncHandle } = require('../../middlewares/asyncHandle.middleware');
 const verifyMoMoSignature = require('../../middlewares/signature.middleware');
 const router = express.Router();

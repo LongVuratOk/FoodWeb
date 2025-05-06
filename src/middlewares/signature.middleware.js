@@ -1,7 +1,7 @@
 'use strict';
 
 const { BadRequestError } = require('../core/error.response');
-const { verifySignature } = require('../utils/signature.util');
+const { verifySignature } = require('../helpers/signature.payment');
 const config = require('../configs/momo.config');
 
 const verifyMoMoSignature = async (req, res, next) => {

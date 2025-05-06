@@ -4,12 +4,18 @@ const {
   validateCreateCategory,
   validateUpdateCategory,
 } = require('../validations/category.valid');
-const { BadRequestError, NotFoundError } = require('../core/error.response');
-const CategoryRepo = require('../models/repositories/category.repo');
+const {
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+} = require('../core/error.response');
+const { convertToObjectIdMongodb } = require('../utils');
+const CategoryRepository = require('../models/repositories/category.repo');
+const PAGINATE_OPTIONS = require('../constants/type.paginate');
 
 class CategoryService {
   constructor() {
-    this.categoryRepo = CategoryRepo;
+    this.categoryRepo = new CategoryRepository();
   }
 
   async publishCategory({ category_id }) {
@@ -45,7 +51,7 @@ class CategoryService {
       category_name: { $regex: `^${category_name}$`, $options: 'i' },
     });
     if (productExist) {
-      throw new BadRequestError('Danh mục đã tồn tại');
+      throw new ConflictError('Danh mục đã tồn tại');
     }
 
     const newCategory = await this.categoryRepo.create(body);
@@ -58,11 +64,20 @@ class CategoryService {
       throw new BadRequestError(error.details[0].message);
     }
 
+    if (bodyUpdate.category_name) {
+      const categoryExist = await this.categoryRepo.findOne({
+        category_name: bodyUpdate.category_name,
+      });
+      if (categoryExist) {
+        throw new ConflictError('Danh mục đã tồn tại');
+      }
+    }
+
     const updateCat = await this.categoryRepo.updateOne(
-      { _id: category_id },
+      { _id: convertToObjectIdMongodb(category_id) },
       bodyUpdate,
     );
-    if (!updateCat) {
+    if (!updateCat.modifiedCount) {
       throw new NotFoundError('Danh mục không tồn tại');
     }
 
@@ -70,8 +85,10 @@ class CategoryService {
   }
 
   async deleteCategory({ category_id }) {
-    const deleteCat = await this.categoryRepo.deleteOne({ _id: category_id });
-    if (!deleteCat) {
+    const deleteCat = await this.categoryRepo.deleteOne({
+      _id: convertToObjectIdMongodb(category_id),
+    });
+    if (!deleteCat.deletedCount) {
       throw new NotFoundError('Danh mục không tồn tại');
     }
 
@@ -94,9 +111,9 @@ class CategoryService {
     return await this.queryCategories({ filter: { isPublished: true }, query });
   }
 
-  async queryCategories({ filter = {}, query }) {
-    const limit = parseInt(query.limit) || 50;
-    const page = parseInt(query.page) || 1;
+  async queryCategories({ filter, query }) {
+    const limit = parseInt(query.limit) || PAGINATE_OPTIONS.LIMIT;
+    const page = parseInt(query.page) || PAGINATE_OPTIONS.PAGE;
     const keySearch = query.keySearch || null;
     const order = query.order || 'desc';
     const sortBy = query.sortBy || 'createdAt';
@@ -114,19 +131,17 @@ class CategoryService {
       skip,
       sort,
     });
-    const countDoc = await this.categoryRepo.countDoc(filter);
-    const lastPage = Math.ceil(countDoc / limit);
-    const nextPage = page + 1 > lastPage ? null : page + 1;
-    const prePage = page - 1 < 1 ? null : page - 1;
+    //const total = await this.categoryRepo.countDoc(filter);
+    const total = result.length;
+    const totalPage = Math.ceil(total / limit);
     return {
-      lastPage,
-      currentPage: page,
-      nextPage,
-      prePage,
-      totalDoc: countDoc,
       data: result,
+      total,
+      limit,
+      page,
+      totalPage,
     };
   }
 }
 
-module.exports = new CategoryService(CategoryRepo);
+module.exports = CategoryService;

@@ -5,7 +5,7 @@ const router = express.Router();
 
 const { asyncHandle } = require('../../middlewares/asyncHandle.middleware');
 const { authentication } = require('../../auth/authentication');
-const CartController = require('../../controllers/admin/cart.controller');
+const CartController = require('../../controllers/cart.controller');
 
 router.use(authentication);
 

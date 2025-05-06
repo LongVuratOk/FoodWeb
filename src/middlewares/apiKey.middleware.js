@@ -2,7 +2,6 @@
 
 const HEADER = require('../constants/type.headers');
 const { ForbiddenError } = require('../core/error.response');
-const apikeyModel = require('../models/apikey.model');
 const ApiKeyService = require('../services/apiKey.service');
 
 const apiKey = async (req, res, next) => {

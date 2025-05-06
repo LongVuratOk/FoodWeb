@@ -1,15 +1,13 @@
 'use strict';
 
-const KeyModel = require('../models/keytoken.model');
+const KeyTokenRepository = require('../models/repositories/keytoken.repo');
 const { convertToObjectIdMongodb } = require('../utils');
 
 class KeyTokenService {
-  static createKeyToken = async ({
-    userId,
-    publicKey,
-    privateKey,
-    refreshToken,
-  }) => {
+  constructor() {
+    this.keyTokenRepository = new KeyTokenRepository();
+  }
+  async createKeyToken({ userId, publicKey, privateKey, refreshToken }) {
     const filter = { user: userId },
       update = {
         publicKey,
@@ -19,21 +17,31 @@ class KeyTokenService {
       },
       options = { upsert: true, new: true };
 
-    const tokens = await KeyModel.findOneAndUpdate(filter, update, options);
+    const tokens = await this.keyTokenRepository.findOneAndUpdate(
+      filter,
+      update,
+      options,
+    );
     return tokens ? tokens.publicKey : null;
-  };
+  }
 
-  static findByUserId = async (userId) => {
-    return await KeyModel.findOne({ user: convertToObjectIdMongodb(userId) });
-  };
+  findByUserId(userId) {
+    return this.keyTokenRepository.findOne({
+      user: convertToObjectIdMongodb(userId),
+    });
+  }
 
-  static removeKeyById = async (id) => {
-    return await KeyModel.findByIdAndDelete(id);
-  };
+  removeKeyById(id) {
+    return this.keyTokenRepository.deleteOne({
+      _id: convertToObjectIdMongodb(id),
+    });
+  }
 
-  static deleteKeyByUserId = async (userId) => {
-    return await KeyModel.findOneAndDelete({ user: userId });
-  };
+  deleteKeyByUserId(userId) {
+    return this.keyTokenRepository.deleteOne({
+      user: convertToObjectIdMongodb(userId),
+    });
+  }
 }
 
-module.exports = KeyTokenService;
+module.exports = new KeyTokenService();

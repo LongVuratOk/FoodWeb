@@ -3,20 +3,31 @@
 const { BadRequestError, NotFoundError } = require('../core/error.response');
 const {
   findDiscountByCode,
-  createDiscount,
   findAllDiscountCodeUnSeletect,
   deleteDiscountCodeId,
   findOneAndUpdateDiscount,
   findByDiscountId,
 } = require('../models/repositories/discount.repo');
 const { validateCreateDiscount } = require('../validations/discount.valid');
-const { convertToObjectIdMongodb } = require('../utils/index');
+const {
+  convertToObjectIdMongodb,
+  getSelectData,
+  getUnSelectData,
+} = require('../utils/index');
+const PAGINATE_OPTIONS = require('../constants/type.paginate');
 const {
   findAllProductForDiscount,
 } = require('../models/repositories/product.repo');
+const DiscountRepository = require('../models/repositories/discount.repo');
+const ProductRepository = require('../models/repositories/product.repo');
 
 class DiscountService {
-  static createDiscount = async (data) => {
+  constructor() {
+    this.discountRepository = new DiscountRepository();
+    this.productRepository = new ProductRepository();
+  }
+
+  async createDiscount(data) {
     const { error } = validateCreateDiscount(data);
     if (error) {
       throw new BadRequestError(error.details[0].message);
@@ -50,8 +61,10 @@ class DiscountService {
       throw new BadRequestError('Ngày bắt đầu phải nhỏ hơn ngày hết hạn');
     }
 
-    const discountFound = await findDiscountByCode({ discount_code: code });
-    if (discountFound && discountFound.discount_is_active) {
+    const discountExist = await this.discountRepository.findOne({
+      discount_code: code,
+    });
+    if (discountExist && discountExist.discount_is_active) {
       throw new BadRequestError('Mã giảm giá đã tồn tại');
     }
 
@@ -75,87 +88,91 @@ class DiscountService {
       discount_product_ids: applies_to === 'all' ? [] : product_ids,
     };
 
-    const newDiscount = await createDiscount(bodyCreate);
+    const newDiscount = await this.discountRepository.create(bodyCreate);
     return newDiscount;
-  };
+  }
 
-  static updateDiscount = async () => {};
+  async updateDiscount() {}
 
-  static getAllDiscountsCodeWithProducts = async ({
+  async getAllDiscountsCodeWithProducts({
     code,
-    limit = 50,
-    page = 1,
-    sort = 'ctime',
-  }) => {
-    const discountFound = await findDiscountByCode({ discount_code: code });
-    if (!discountFound || !discountFound.discount_is_active) {
+    limit = PAGINATE_OPTIONS.LIMIT,
+    page = PAGINATE_OPTIONS.PAGE,
+  }) {
+    const discountExist = await this.discountRepository.findOne({
+      discount_code: code,
+    });
+    if (!discountExist || !discountExist.discount_is_active) {
       throw new NotFoundError('Mã giảm giá không tồn tại');
     }
 
-    const { discount_applies_to, discount_product_ids } = discountFound;
+    const { discount_applies_to, discount_product_ids } = discountExist;
     let products;
-    if (discount_applies_to === 'all') {
-      products = await findAllProductForDiscount({
-        limit,
-        sort,
-        page,
-        filter: { isPublished: true },
-        select: ['product_name'],
-      });
-    }
 
-    if (discount_applies_to === 'specific') {
-      products = await findAllProductForDiscount({
-        limit,
-        sort,
-        page,
-        filter: {
-          _id: { $in: discount_product_ids },
-          isPublished: true,
-        },
-        select: ['product_name'],
-      });
-    }
+    const query = {
+      limit,
+      page,
+      fieldSelect: getSelectData(['product_name']),
+    };
+
+    products = await this.findAllProductForDiscount(
+      discount_applies_to,
+      query,
+      discount_product_ids,
+    );
+
     if (!products) {
       throw new BadRequestError('Sản phẩm không tồn tại');
     }
     return products;
-  };
+  }
 
-  static getAllDiscount = async ({
-    limit = 50,
-    page = 1,
-    sort = 'ctime',
+  findAllProductForDiscount(discount_applies_to, query, discount_product_ids) {
+    const filter = { isPublished: true };
+    const { limit, page, fieldSelect } = query;
+    if (discount_applies_to === 'specific') {
+      filter._id = { $in: discount_product_ids };
+    }
+    return this.productRepository.query(filter, limit, page, fieldSelect);
+  }
+
+  async getAllDiscount({
+    limit = PAGINATE_OPTIONS.LIMIT,
+    page = PAGINATE_OPTIONS.PAGE,
+    sort = PAGINATE_OPTIONS.SORT,
     filter = {},
-  }) => {
+  }) {
     filter = { discount_is_active: true };
-    const discount = await findAllDiscountCodeUnSeletect({
+    const fieldSelect = getUnSelectData(['__v']);
+    const discount = await this.discountRepository.findAllDiscountCode({
       filter,
       limit,
       page,
       sort,
-      unSelect: ['__v'],
+      fieldSelect,
     });
     if (!discount) {
       throw new NotFoundError('Mã giảm giá không tồn tại');
     }
 
     return discount;
-  };
+  }
 
-  static deleteDiscountCodeId = async ({ discountId }) => {
-    const deleteDiscount = await deleteDiscountCodeId(discountId);
-    if (!deleteDiscount) {
+  async deleteDiscountCodeId({ discountId }) {
+    const deleteDiscount = await this.discountRepository.deleteOne({
+      _id: convertToObjectIdMongodb(discountId),
+    });
+    if (!deleteDiscount.deletedCount) {
       throw new NotFoundError('Mã giảm giá không tồn tại');
     }
     return deleteDiscount;
-  };
+  }
 
-  static getDiscountAmount = async ({ code, userId, products }) => {
-    const discountFound = await findDiscountByCode({
+  async getDiscountAmount({ code, userId, products }) {
+    const discountExist = await this.discountRepository.findOne({
       discount_code: code,
     });
-    if (!discountFound) {
+    if (!discountExist) {
       throw new NotFoundError('Mã giảm giá không tồn tại');
     }
 
@@ -170,7 +187,7 @@ class DiscountService {
       discount_type,
       discount_value,
       discount_max_value,
-    } = discountFound;
+    } = discountExist;
 
     if (!discount_is_active) {
       throw new BadRequestError('Mã giảm giá đã hết hạn');
@@ -223,57 +240,63 @@ class DiscountService {
         };
       }
     }
-  };
+  }
 
-  static addUserForDiscount = async ({ code, userId }) => {
-    const discountFound = await findDiscountByCode({ discount_code: code });
-    if (!discountFound) {
+  async addUserForDiscount({ code, userId }) {
+    const discountExist = await this.discountRepository.findOne({
+      discount_code: code,
+    });
+    if (!discountExist) {
       throw new NotFoundError('Mã giảm giá không tìm thấy');
     }
 
-    const userIndex = discountFound.discount_users_used.findIndex(
+    const userIndex = discountExist.discount_users_used.findIndex(
       (user) => user.userId === userId,
     );
 
     if (userIndex === -1) {
-      discountFound.discount_users_used.push({ userId, count: 1 });
+      discountExist.discount_users_used.push({ userId, count: 1 });
     } else {
       if (
-        discountFound.discount_max_uses_per_user > 0 &&
-        discountFound.discount_users_used[userIndex].count >=
-          discountFound.discount_max_uses_per_user
+        discountExist.discount_max_uses_per_user > 0 &&
+        discountExist.discount_users_used[userIndex].count >=
+          discountExist.discount_max_uses_per_user
       ) {
         throw new BadRequestError('Bạn đã đạt giới hạn sử dụng mã giảm giá');
       }
-      discountFound.discount_users_used[userIndex].count += 1;
+      discountExist.discount_users_used[userIndex].count += 1;
     }
 
-    discountFound.discount_uses_count += 1;
-    discountFound.discount_max_uses -= 1;
+    discountExist.discount_uses_count += 1;
+    discountExist.discount_max_uses -= 1;
 
     const query = { discount_code: code },
       bodyUpdate = {
         $set: {
-          discount_users_used: discountFound.discount_users_used,
-          discount_uses_count: discountFound.discount_uses_count,
-          discount_max_uses: discountFound.discount_max_uses,
+          discount_users_used: discountExist.discount_users_used,
+          discount_uses_count: discountExist.discount_uses_count,
+          discount_max_uses: discountExist.discount_max_uses,
         },
       },
       options = { new: true };
-    const result = await findOneAndUpdateDiscount(query, bodyUpdate, options);
-    if (!result) {
+    const result = await this.discountRepository.updateOne(
+      query,
+      bodyUpdate,
+      options,
+    );
+    if (!result.modifiedCount) {
       throw new NotFoundError('Không tìm thấy mã giảm giá');
     }
     return {};
-  };
+  }
 
-  static async cancelDiscountCode({ discountId, userId }) {
-    const discountFound = await findByDiscountId(discountId);
-    if (!discountFound) {
+  async cancelDiscountCode({ discountId, userId }) {
+    const discountExist = await this.discountRepository.findById(discountId);
+    if (!discountExist) {
       throw new NotFoundError('Không tìm thấy mã giảm giá');
     }
 
-    const userFound = discountFound.discount_users_used.find(
+    const userFound = discountExist.discount_users_used.find(
       (user) => user.userId === userId,
     );
     if (!userFound) {
@@ -307,8 +330,12 @@ class DiscountService {
     }
     const options = { new: true };
 
-    const result = await findOneAndUpdateDiscount(query, bodyUpdate, options);
-    if (!result) {
+    const result = await this.discountRepository.updateOne(
+      query,
+      bodyUpdate,
+      options,
+    );
+    if (!result.modifiedCount) {
       throw new NotFoundError('Không tìm thấy mã giảm giá');
     }
     return {};

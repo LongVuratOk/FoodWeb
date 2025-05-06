@@ -1,11 +1,14 @@
 'use strict';
 
-const ApiKeyModel = require('../models/apikey.model');
+const ApiKeyRepository = require('../models/repositories/apiKey.repo');
 
 class ApiKeyService {
-  static findByKey = async (key) => {
-    return await ApiKeyModel.findOne({ key, status: true }).lean();
-  };
+  constructor() {
+    this.apiKeyRepository = new ApiKeyRepository();
+  }
+  findByKey(key) {
+    return this.apiKeyRepository.findOne({ key, status: true }).lean();
+  }
 }
 
-module.exports = ApiKeyService;
+module.exports = new ApiKeyService();
