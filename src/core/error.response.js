@@ -45,9 +45,19 @@ class UnauthorizedError extends ErrorResponse {
   }
 }
 
+class ConflictError extends ErrorResponse {
+  constructor(
+    message = ReasonPhrases.CONFLICT,
+    statusCode = StatusCodes.CONFLICT,
+  ) {
+    super(message, statusCode);
+  }
+}
+
 module.exports = {
   NotFoundError,
   BadRequestError,
   ForbiddenError,
   UnauthorizedError,
+  ConflictError,
 };

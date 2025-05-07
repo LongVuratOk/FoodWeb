@@ -1,59 +1,78 @@
 'use strict';
 
+const PAGINATE_OPTIONS = require('../../constants/type.paginate');
+
 class BaseRepository {
   constructor(model) {
+    this.setModel(model);
+  }
+
+  getModel() {
+    return this.model;
+  }
+
+  setModel(model) {
     this.model = model;
   }
-
-  async create(data) {
-    return await this.model.create(data);
+  create(data) {
+    return this.getModel().create(data);
   }
 
-  async findAll(filter = {}) {
-    return await this.model.find(filter).lean();
+  findBy(filter = {}) {
+    return this.getModel().find(filter);
   }
 
-  async findOne(filter) {
-    return await this.model.findOne(filter);
+  findOne(filter) {
+    return this.getModel().findOne(filter);
   }
 
-  async updateOne(query, updateSet, options = {}) {
-    return await this.model.updateOne(query, updateSet, options);
+  findById(id) {
+    return this.getModel().findById(id);
+  }
+  updateOne(query, updateSet, options = {}) {
+    return this.getModel().updateOne(query, updateSet, options);
   }
 
-  async updateMany(query, updateSet, options = {}) {
-    return await this.model.updateMany(query, { $set: updateSet }, options);
+  updateMany(query, updateSet, options = {}) {
+    return this.getModel().updateMany(query, { $set: updateSet }, options);
   }
 
-  async deleteOne(filter = {}) {
-    return await this.model.deleteOne(filter);
+  deleteOne(filter) {
+    return this.getModel().deleteOne(filter);
   }
 
-  async deleteMany(filter = {}) {
-    return await this.model.deleteMany(filter);
+  deleteMany(filter) {
+    return this.getModel().deleteMany(filter);
   }
 
-  async search(fields, keySearch) {
+  search(fields, keySearch) {
     const regex = new RegExp(keySearch, 'i');
     const fieldSearch = fields.map((item) => ({ [item]: { $regex: regex } }));
-    return await this.model
+    return this.getModel()
       .find({
         $or: fieldSearch,
       })
       .lean();
   }
 
-  async query(query, limit = 50, skip = 0) {
-    return await this.model
-      .find(query)
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 })
-      .lean();
+  countDoc(filter) {
+    return this.getModel().countDocuments(filter);
   }
 
-  async countDoc(filter = {}) {
-    return await this.model.countDocuments(filter);
+  async query(
+    filter = {},
+    limit = PAGINATE_OPTIONS.LIMIT,
+    page = PAGINATE_OPTIONS.PAGE,
+    fieldSelect = [],
+  ) {
+    limit = +limit || PAGINATE_OPTIONS.LIMIT;
+    page = +page || PAGINATE_OPTIONS.PAGE;
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.getModel().find(filter).skip(skip).limit(limit).select(fieldSelect),
+      this.getModel().countDocuments(filter),
+    ]);
+    return { data, total, limit, page, totalPage: Math.ceil(total / limit) };
   }
 }
 

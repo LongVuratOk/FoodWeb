@@ -1,13 +1,16 @@
 'use strict';
 
-const { OK } = require('../../core/success.response');
-const CheckoutService = require('../../services/checkout.service');
+const { OK } = require('../core/success.response');
+const CheckoutService = require('../services/checkout.service');
 
 class CheckoutController {
+  constructor() {
+    this.checkoutService = new CheckoutService();
+  }
   checkoutReview = async (req, res, next) => {
     new OK({
       message: 'OK',
-      metadata: await CheckoutService.checkoutReview({
+      metadata: await this.checkoutService.checkoutReview({
         userId: req.user.userId,
         order_products: req.body,
       }),

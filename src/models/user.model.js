@@ -34,6 +34,8 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    verificationToken: String,
+    verificationTokenExpires: Date,
     avatar_url: {
       type: String,
     },

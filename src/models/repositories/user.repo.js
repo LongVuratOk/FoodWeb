@@ -1,11 +1,12 @@
 'use strict';
 
 const UserModel = require('../user.model');
+const BaseRepository = require('./base.repo');
 
-const findByEmail = async ({ email }) => {
-  return await UserModel.findOne({ email });
-};
+class UserRepository extends BaseRepository {
+  constructor() {
+    super(UserModel);
+  }
+}
 
-module.exports = {
-  findByEmail,
-};
+module.exports = UserRepository;

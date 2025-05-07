@@ -6,13 +6,13 @@ const router = express.Router();
 
 const { asyncHandle } = require('../../middlewares/asyncHandle.middleware');
 const { authentication } = require('../../auth/authentication');
-const UploadController = require('../../controllers/admin/upload.controller');
-const { uploadDisk } = require('../../configs/multer.config');
+const UploadController = require('../../controllers/upload.controller');
+const { product } = require('../../middlewares/upload.middleware');
 
 router.post('/product', asyncHandle(UploadController.uploadImageFromUrl));
 router.post(
   '/product/thumb',
-  uploadDisk.single('file'),
+  product.single('file'),
   asyncHandle(UploadController.uploadImageThumb),
 );
 

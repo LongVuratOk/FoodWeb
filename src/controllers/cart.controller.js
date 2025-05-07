@@ -1,13 +1,16 @@
 'use strict';
 
-const { OK } = require('../../core/success.response');
-const CartService = require('../../services/cart.service');
+const { OK } = require('../core/success.response');
+const CartService = require('../services/cart.service');
 
 class CartController {
+  constructor() {
+    this.cartService = new CartService();
+  }
   addToCart = async (req, res, next) => {
     new OK({
       message: 'Thêm sản phẩm vào giỏ hàng thành công',
-      metadata: await CartService.addToCart({
+      metadata: await this.cartService.addToCart({
         userId: req.user.userId,
         product: req.body,
       }),
@@ -16,7 +19,7 @@ class CartController {
   updateCartQuatity = async (req, res, next) => {
     new OK({
       message: 'Cập nhật số lượng thành công',
-      metadata: await CartService.updateUserCartQuantity({
+      metadata: await this.cartService.updateUserCartQuantity({
         userId: req.user.userId,
         product: req.body,
       }),
@@ -26,7 +29,7 @@ class CartController {
   deleteItemCart = async (req, res, next) => {
     new OK({
       message: 'Xóa sản phẩm khỏi giỏ hàng thành công',
-      metadata: await CartService.deleteItemCart({
+      metadata: await this.cartService.deleteItemCart({
         userId: req.user.userId,
         productId: req.body.productId,
       }),
@@ -36,7 +39,7 @@ class CartController {
   getListUserCart = async (req, res, next) => {
     new OK({
       message: 'Lấy danh sách sản phẩm giỏ hàng thành công',
-      metadata: await CartService.getListUserCart(req.user.userId),
+      metadata: await this.cartService.getListUserCart(req.user.userId),
     }).send(res);
   };
 }

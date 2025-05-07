@@ -5,7 +5,7 @@ const router = express.Router();
 
 const { asyncHandle } = require('../../middlewares/asyncHandle.middleware');
 const { authentication } = require('../../auth/authentication');
-const CheckoutController = require('../../controllers/admin/checkout.controller');
+const CheckoutController = require('../../controllers/checkout.controller');
 
 router.use(authentication);
 

@@ -6,8 +6,9 @@ const { objectIdPattern } = require('../constants/type.ObjectId');
 const createProductSchema = Joi.object({
   product_name: Joi.string().required().trim(),
   product_thumb: Joi.string().uri().required(),
+  product_description: Joi.string().optional(),
   product_price: Joi.number().required().min(0),
-  product_quatity: Joi.number().required().min(0),
+  product_quantity: Joi.number().required().min(0),
   product_category: Joi.string().regex(objectIdPattern).required().messages({
     'string.pattern.base':
       'product_category must be a valid ObjectId (24 hex characters)',
@@ -32,7 +33,7 @@ const updateProductSchema = createProductSchema
       'product_name',
       'product_thumb',
       'product_price',
-      'product_quatity',
+      'product_quantity',
       'product_category',
     ],
     (fields) => fields.optional(),

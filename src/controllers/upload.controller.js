@@ -1,8 +1,8 @@
 'use strict';
 
-const { BadRequestError } = require('../../core/error.response');
-const { OK } = require('../../core/success.response');
-const UploadService = require('../../services/upload.service');
+const { BadRequestError } = require('../core/error.response');
+const { OK } = require('../core/success.response');
+const UploadService = require('../services/upload.service');
 
 class UploadController {
   uploadImageFromUrl = async (req, res, next) => {
@@ -14,6 +14,7 @@ class UploadController {
 
   uploadImageThumb = async (req, res, next) => {
     const { file } = req;
+    console.log(file);
     if (!file) {
       throw new BadRequestError('File missing');
     }

@@ -3,7 +3,7 @@
 const express = require('express');
 const { authentication } = require('../../auth/authentication');
 const { asyncHandle } = require('../../middlewares/asyncHandle.middleware');
-const DiscountController = require('../../controllers/admin/discount.controller');
+const DiscountController = require('../../controllers/discount.controller');
 const router = express.Router();
 
 router.use(authentication);
