@@ -3,7 +3,8 @@
 const cloudinary = require('../configs/cloudinary.config');
 
 class UploadService {
-  static uploadFromUrl = async () => {
+  constructor() {}
+  async uploadFromUrl() {
     try {
       const urlImg =
         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwWiJoPL80naeuqfhE6fLZH2PGVAThJ9HJyQ&s';
@@ -19,12 +20,9 @@ class UploadService {
     } catch (error) {
       console.log('Lỗi tải ảnh lên cloudinary:::', error);
     }
-  };
+  }
 
-  static uploadFileFromLocal = async ({
-    path,
-    folderName = 'product/8409',
-  }) => {
+  async uploadFileFromLocal({ path, folderName = 'product/8409' }) {
     try {
       const result = await cloudinary.uploader.upload(path, {
         public_id: 'thumb',
@@ -37,6 +35,6 @@ class UploadService {
     } catch (error) {
       console.log('Lỗi tải ảnh lên:::', error);
     }
-  };
+  }
 }
 module.exports = UploadService;

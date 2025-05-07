@@ -5,10 +5,13 @@ const { OK } = require('../core/success.response');
 const UploadService = require('../services/upload.service');
 
 class UploadController {
+  constructor() {
+    this.uploadService = new UploadService();
+  }
   uploadImageFromUrl = async (req, res, next) => {
     new OK({
       message: 'Tải đường dẫn ảnh lên thành công',
-      metadata: await UploadService.uploadFromUrl(),
+      metadata: await this.uploadService.uploadFromUrl(),
     }).send(res);
   };
 
@@ -20,7 +23,7 @@ class UploadController {
     }
     new OK({
       message: 'Tải ảnh lên thành công',
-      metadata: await UploadService.uploadFileFromLocal({
+      metadata: await this.uploadService.uploadFileFromLocal({
         path: file.path,
       }),
     }).send(res);

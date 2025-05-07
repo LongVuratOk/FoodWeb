@@ -4,31 +4,23 @@ const OrderService = require('../services/order.service');
 const { OK } = require('../core/success.response');
 
 class OrderController {
+  constructor() {
+    this.orderService = new OrderService();
+  }
   createOrder = async (req, res, next) => {
     new OK({
       message: 'Tạo đơn hàng thành công',
-      metadata: await OrderService.createOrder(req.body),
+      metadata: await this.orderService.createOrder(req.body),
     }).send(res);
   };
 
-  createPayment = async (req, res, next) => {
+  updateOrderStatus = async (req, res, next) => {
     new OK({
-      message: 'Thanh toán ....',
-      metadata: await OrderService.createPayment(req.body),
-    }).send(res);
-  };
-
-  callback = async (req, res, next) => {
-    new OK({
-      message: 'Thanh toán thành công',
-      metadata: await OrderService.callback(req.query),
-    }).send(res);
-  };
-
-  notify = async (req, res, next) => {
-    new OK({
-      message: 'Thanh toán thành công',
-      metadata: await OrderService.notifyHandler(req.body),
+      message: 'Cập nhật trạng thái đơn hàng thành công',
+      metadata: await this.orderService.updateOrderStatus({
+        orderId: req.params._id,
+        status: req.body.status,
+      }),
     }).send(res);
   };
 }
