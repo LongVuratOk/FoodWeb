@@ -10,7 +10,7 @@ class OrderRepository extends BaseRepository {
   updateOrderStatus(orderId) {
     return this.getModel().findByIdAndUpdate(
       orderId,
-      { is_payment: true },
+      { payment_method: 'online', is_payment: true },
       { new: true },
     );
   }

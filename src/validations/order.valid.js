@@ -8,9 +8,15 @@ const createOrderSchema = Joi.object({
   address: Joi.string().required(),
   phone: Joi.string().default(true).optional(),
   total_money: Joi.number().required(),
-  payment_method: Joi.string().default('on delivery').optional(),
+  payment_method: Joi.string()
+    .valid('online', 'on delivery')
+    .default('on delivery')
+    .optional(),
   is_payment: Joi.boolean().default(false).optional(),
-  status: Joi.string().default('pending').optional(),
+  status: Joi.string()
+    .valid('pending', 'confirm', 'ship', 'receive')
+    .default('pending')
+    .optional(),
   cart_id: Joi.string().regex(objectIdPattern).required().messages({
     'string.pattern.base':
       'createBy must be a valid ObjectId (24 hex characters)',

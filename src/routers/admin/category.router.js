@@ -6,7 +6,7 @@ const { authentication } = require('../../auth/authentication');
 const CategoryController = require('../../controllers/category.controller');
 const router = express.Router();
 
-//router.use(authentication);
+router.use(authentication);
 
 router.get('/', asyncHandle(CategoryController.getAllCategories));
 router.get('/publish/', asyncHandle(CategoryController.getAllCategoriesPub));

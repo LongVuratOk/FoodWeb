@@ -9,6 +9,8 @@ const { authentication } = require('../../auth/authentication');
 const UploadController = require('../../controllers/upload.controller');
 const { product } = require('../../middlewares/upload.middleware');
 
+router.use(authentication);
+
 router.post('/product', asyncHandle(UploadController.uploadImageFromUrl));
 router.post(
   '/product/thumb',
